@@ -1,7 +1,4 @@
 ## Backend Assessment Test
-
-### Test Due
-The test is expected to be completed with 2 days
 ### Setup procedure
 1. Checkout a new feature branch from `master`
 2. Do commit for every function updates
