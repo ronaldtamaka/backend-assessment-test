@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Authenticate;
 use App\Http\Requests\DebitCardCreateRequest;
 use App\Http\Requests\DebitCardDestroyRequest;
 use App\Http\Requests\DebitCardShowRequest;
@@ -12,7 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
-
+use Illuminate\Support\Facades\Auth;
 class DebitCardController extends BaseController
 {
     /**
@@ -22,12 +23,9 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index(DebitCardShowRequest $request): JsonResponse
+    public function index()
     {
-        $debitCards = $request->user()
-            ->debitCards()
-            ->active()
-            ->get();
+        $debitCards = DebitCard::where('user_id',Auth::id())->get();
 
         return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
     }
