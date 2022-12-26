@@ -58,6 +58,9 @@ class LoanController extends BaseController
     public function repayment(Request $request , $repayment){
 
         $user =  Auth::userOrFail();
+
+        $loan =  $user->loans()->where('id', $request->loan);
+
         // inputan yg di isi jika melunasi semua cicilan pada 1 tagiahan berisi id loan
         if ($request->repaymentAll == 'all') {
               $loan = $user->loans()->where('id', $request->loan)->update([
@@ -65,7 +68,7 @@ class LoanController extends BaseController
                 'status' =>  'paid',
             ]);
 
-            $sc = ScheduledRepayment::where('loan_id', $user->loans->where('id', $request->loan)->first()->id)->where('status', 'not paid')->get();
+            $sc = ScheduledRepayment::where('loan_id', $loan->first()->id)->where('status', 'not paid')->get();
 
             foreach ($sc as $key => $value) {
                 ScheduledRepayment::where('id', $value->id)->update([
@@ -85,7 +88,6 @@ class LoanController extends BaseController
         }
 
 
-        $loan =  $user->loans()->where('id', $request->loan);
         
         $loanup = clone $loan;
 
