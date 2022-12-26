@@ -14,6 +14,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
 class DebitCardController extends BaseController
 {
     /**
@@ -36,11 +39,21 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function store(DebitCardCreateRequest $request)
+    public function store(Request $request)
     {
-        $debitCard = $request->user()->debitCards()->create([
+       
+        $validator = Validator::make(request()->all(), [
+            'type' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->messages(), 422);
+        }
+        $user =  Auth::userOrFail();
+
+        $debitCard = $user->debitCards()->create([
             'type' => $request->input('type'),
-            'number' => rand(1000000000000000, 9999999999999999),
+            'number' => rand(10000000, 99999999),
             'expiration_date' => Carbon::now()->addYear(),
         ]);
 
