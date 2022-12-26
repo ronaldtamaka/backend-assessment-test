@@ -19,7 +19,7 @@ class CreateReceivedRepaymentsTable extends Migration
 
             // TODO: Add missing columns here
             $table->unsignedBigInteger('scheduled_repayment_id');
-            $table->integer('amount');
+            $table->date('pay_month');
             $table->string('status');
 
             $table->timestamps();

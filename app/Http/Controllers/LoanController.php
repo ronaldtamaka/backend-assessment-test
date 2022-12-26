@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ReceivedRepayment;
 use App\Models\ScheduledRepayment;
 use DateTime;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class LoanController extends BaseController
         }
 
         $user =  Auth::userOrFail();
-        $debitCard = $user->loans()->create([
+        $scheduledrepayment = $user->loans()->create([
             'amount' => $request->amount,
             'terms' => $request->terms,
             'outstanding_amount' => $request->amount,
@@ -36,7 +37,7 @@ class LoanController extends BaseController
             'processed_at' => $request->processed_at,
             'status' =>  'not paid',
         ]);
-        $debitCard = $debitCard->fresh();
+        $scheduledrepayment = $scheduledrepayment->fresh();
         $ciclan = $request->amount / $request->terms;
         
     //  Karna tidak ada admin yg aprov jadi pengajuan pinjaman auto di terima
@@ -44,7 +45,7 @@ class LoanController extends BaseController
             $month = '+'.$i.' month';
             $date = date('Y-m-d', strtotime($month, strtotime($request->processed_at)));
             ScheduledRepayment::create([
-                'loan_id' => $debitCard->id,
+                'loan_id' => $scheduledrepayment->id,
                 'pay_month' => $date,
                 'pay_amount' => $ciclan,
                 'status' => 'not paid',
@@ -54,7 +55,39 @@ class LoanController extends BaseController
         return response()->json(['msg' => 'Berhasil Melakukan Mengajuan'], HttpResponse::HTTP_OK);
     }
 
-    public function repayment($repayment){
+    public function repayment(Request $request , $repayment){
+
+        $user =  Auth::userOrFail();
+        // inputan yg di isi jika melunasi semua cicilan pada 1 tagiahan berisi id loan
+        if ($request->repaymentAll) {
+              $scheduledrepayment = $user->loans()->where('id', $request->repaymentAll)->update([
+                'outstanding_amount' => 0,
+                'status' =>  'paid',
+            ]);
+
+            $sc = ScheduledRepayment::where('loan_id', $user->loans->where('id', $request->repaymentAll)->first()->id)->where('status', 'not paid')->get();
+
+            foreach ($sc as $key => $value) {
+                ScheduledRepayment::where('id', $value->id)->update([
+                    'status' => 'paid'
+                ]);
+
+                // karna tidak ada admin pembayaran auto diterima (accept/reject)
+                $tes = ReceivedRepayment::create([
+                    'loan_id' => $user->loans->where('id', $request->repaymentAll)->first()->id,
+                    'scheduled_repayment_id' => $value->id,
+                    'pay_date' => date("Y-m-d"),
+                    'status' => 'accept',
+                ]);
+
+            }
+
+            return response()->json(['msg' => 'Berhasil Melakukan Pembayaran'], HttpResponse::HTTP_OK);
+ 
+        }
+
+
+
 
     }
     
