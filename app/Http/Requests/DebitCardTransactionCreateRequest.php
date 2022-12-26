@@ -17,8 +17,8 @@ class DebitCardTransactionCreateRequest extends FormRequest
     public function authorize(): bool
     {
         $debitCard = DebitCard::find($this->input('debit_card_id'));
-
-        return $debitCard && $this->user()->can('create', [DebitCardTransaction::class, $debitCard]);
+        // dd($this->user()->can('create', [DebitCardTransaction::class, $debitCard]));
+        return $debitCard;
     }
 
     /**
