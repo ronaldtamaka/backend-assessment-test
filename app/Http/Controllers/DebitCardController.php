@@ -68,8 +68,9 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function show(DebitCardShowRequest $request, DebitCard $debitCard)
+    public function show($debitCard)
     {
+        $debitCard = DebitCard::where('user_id', Auth::id() )->find($debitCard);
         return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
     }
 
