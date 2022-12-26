@@ -38,4 +38,6 @@ Route::middleware('auth:api')
         
         // 
         Route::post('scheduled-repayment', [LoanController::class, 'credit_application']);
+        Route::post('repayment/{repayment}', [LoanController::class, 'repayment']);
+
     });
