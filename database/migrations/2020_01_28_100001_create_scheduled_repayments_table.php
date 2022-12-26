@@ -19,6 +19,8 @@ class CreateScheduledRepaymentsTable extends Migration
 
             // TODO: Add missing columns here
             $table->date('pay_month');
+            $table->double('pay_amount');
+
             $table->string('status');
 
             $table->timestamps();
