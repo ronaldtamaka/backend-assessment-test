@@ -22,9 +22,8 @@ class ReceivedRepayment extends Model
      *
      * @var array
      */
-    protected $fillable = [
-        //
-    ];
+    protected $guarded = ['id'];
+
 
     /**
      * A Received Repayment belongs to a Loan
@@ -34,5 +33,10 @@ class ReceivedRepayment extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class, 'loan_id');
+    }
+
+    public function scheduled()
+    {
+        return $this->belongsTo(ScheduledRepayment::class, 'scheduled_repayment_id');
     }
 }

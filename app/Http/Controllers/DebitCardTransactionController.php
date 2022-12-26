@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Illuminate\Http\Request;
 
 class DebitCardTransactionController extends BaseController
 {
@@ -24,14 +25,13 @@ class DebitCardTransactionController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index(DebitCardTransactionShowIndexRequest $request): JsonResponse
+    public function index(Request $request)
     {
         $debitCard = DebitCard::find($request->input('debit_card_id'));
 
         $debitCardTransactions = $debitCard
             ->debitCardTransactions()
             ->get();
-
         return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
     }
 
@@ -42,10 +42,9 @@ class DebitCardTransactionController extends BaseController
      *
      * @return JsonResponse
      */
-    public function store(DebitCardTransactionCreateRequest $request)
+    public function store(Request $request)
     {
         $debitCard = DebitCard::find($request->input('debit_card_id'));
-
         $debitCardTransaction = $debitCard->debitCardTransactions()->create([
             'amount' => $request->input('amount'),
             'currency_code' => $request->input('currency_code'),
@@ -62,8 +61,9 @@ class DebitCardTransactionController extends BaseController
      *
      * @return JsonResponse
      */
-    public function show(DebitCardTransactionShowRequest $request, DebitCardTransaction $debitCardTransaction)
+    public function show( $debitCardTransaction)
     {
+       $debitCardTransaction =  DebitCardTransaction::find($debitCardTransaction);
         return response()->json(new DebitCardTransactionResource($debitCardTransaction), HttpResponse::HTTP_OK);
     }
 }
