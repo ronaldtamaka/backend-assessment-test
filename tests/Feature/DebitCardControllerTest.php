@@ -195,8 +195,8 @@ class DebitCardControllerTest extends TestCase
     // Extra bonus for extra tests :)
     public function testCustomerCannotCreateADebitCard()
     {
-        // post /debit-card-transactions
-        $response = $this->post('/debit-card-transactions', [
+        // post /debit-cards
+        $response = $this->post('/debit-cards', [
             'user_id' => $this->user->id,
             'type' => 1,
             'number' => rand(1000000000000000, 9999999999999999),
