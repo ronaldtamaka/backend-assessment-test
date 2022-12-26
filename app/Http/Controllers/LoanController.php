@@ -59,13 +59,13 @@ class LoanController extends BaseController
 
         $user =  Auth::userOrFail();
         // inputan yg di isi jika melunasi semua cicilan pada 1 tagiahan berisi id loan
-        if ($request->repaymentAll) {
-              $scheduledrepayment = $user->loans()->where('id', $request->repaymentAll)->update([
+        if ($request->repaymentAll == 'all') {
+              $loan = $user->loans()->where('id', $request->loan)->update([
                 'outstanding_amount' => 0,
                 'status' =>  'paid',
             ]);
 
-            $sc = ScheduledRepayment::where('loan_id', $user->loans->where('id', $request->repaymentAll)->first()->id)->where('status', 'not paid')->get();
+            $sc = ScheduledRepayment::where('loan_id', $user->loans->where('id', $request->loan)->first()->id)->where('status', 'not paid')->get();
 
             foreach ($sc as $key => $value) {
                 ScheduledRepayment::where('id', $value->id)->update([
@@ -73,21 +73,41 @@ class LoanController extends BaseController
                 ]);
 
                 // karna tidak ada admin pembayaran auto diterima (accept/reject)
-                $tes = ReceivedRepayment::create([
-                    'loan_id' => $user->loans->where('id', $request->repaymentAll)->first()->id,
+                ReceivedRepayment::create([
+                    'loan_id' => $user->loans->where('id', $request->loan)->first()->id,
                     'scheduled_repayment_id' => $value->id,
                     'pay_date' => date("Y-m-d"),
                     'status' => 'accept',
                 ]);
 
             }
-
             return response()->json(['msg' => 'Berhasil Melakukan Pembayaran'], HttpResponse::HTTP_OK);
- 
         }
 
 
+        $loan =  $user->loans()->where('id', $request->loan);
+        
+        $loanup = clone $loan;
 
+       $sc =  ScheduledRepayment::where('id', $repayment)->first();
+
+        $loanup->update([
+            'outstanding_amount' => $loan->first()->outstanding_amount - $sc->pay_amount,
+            'status' => $loan->first()->outstanding_amount - $sc->pay_amount == 0 ? 'paid' : 'not paid',
+        ]);
+
+       $sc->update([
+            'status' => 'paid'
+        ]);
+
+        ReceivedRepayment::create([
+            'loan_id' => $loan->first()->id,
+            'scheduled_repayment_id' => $repayment,
+            'pay_date' => date("Y-m-d"),
+            'status' => 'accept',
+        ]);
+
+        return response()->json(['msg' => 'Berhasil Melakukan Pembayaran'], HttpResponse::HTTP_OK);
 
     }
     
