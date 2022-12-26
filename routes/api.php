@@ -23,8 +23,6 @@ Route::post('login', [UserController::class, 'login'])->name('login');
 
 Route::middleware('auth:api')
     ->group(function () {
-// Route::post('register', [UserController::class, 'register']); 
-
         // Debit card endpoints
         Route::get('debit-cards', [DebitCardController::class, 'index']);
         Route::post('debit-cards', [DebitCardController::class, 'store']);

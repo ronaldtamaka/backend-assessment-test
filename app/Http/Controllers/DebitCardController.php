@@ -26,7 +26,6 @@ class DebitCardController extends BaseController
     public function index()
     {
         $debitCards = DebitCard::where('user_id',Auth::id())->get();
-
         return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
     }
 
