@@ -42,12 +42,12 @@ class DebitCardController extends BaseController
     public function store(Request $request)
     {
        
-        $validator = Validator::make(request()->all(), [
+        $validator = Validator::make($request->all(), [
             'type' => 'required',
         ]);
 
         if($validator->fails()){
-            return response()->json($validator->messages(), 422);
+            return response()->json($validator->messages(), 201);
         }
         $user =  Auth::userOrFail();
 
@@ -82,13 +82,15 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function update(DebitCardUpdateRequest $request, DebitCard $debitCard)
+    public function update(Request $request, $debitCard)
     {
-        $debitCard->update([
+        $user =  Auth::userOrFail();
+        $debit =  $user->debitCards()->where('id', $debitCard )->update([
             'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
         ]);
 
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
+        $debit = $user->debitCards()->find($debitCard);
+        return response()->json(new DebitCardResource($debit), HttpResponse::HTTP_OK);
     }
 
     /**
@@ -100,10 +102,9 @@ class DebitCardController extends BaseController
      * @return JsonResponse
      * @throws \Exception
      */
-    public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
+    public function destroy($debitCard)
     {
-        $debitCard->delete();
-
-        return response()->json([], HttpResponse::HTTP_NO_CONTENT);
+        $debitCard = DebitCard::where('user_id', Auth::id() )->find($debitCard)->delete();
+        return response()->json(['data' =>'data deleted successfully'], HttpResponse::HTTP_NO_CONTENT);
     }
 }

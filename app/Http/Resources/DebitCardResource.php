@@ -20,6 +20,7 @@ class DebitCardResource extends JsonResource
      */
     public function toArray($request)
     {
+        // dd($this);
         if (empty($this->resource)) 
             return 'empty data';
 
@@ -29,7 +30,7 @@ class DebitCardResource extends JsonResource
             'number' => $this->number,
             'type' => $this->type,
             'expiration_date' => $this->expiration_date,
-            'is_active' => $this->is_active ? 'active' : 'not active',
+            'is_active' => $this->is_active,
         ];
     }
 }
