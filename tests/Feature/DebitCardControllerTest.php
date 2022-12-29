@@ -198,6 +198,17 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
         // delete api/debit-cards/{debitCard}
+        $user = User::factory()->create();
+
+        $debitCard = \App\Models\DebitCard::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        \App\Models\DebitCardTransaction::factory()->create([
+            'debit_card_id' => $debitCard->id,
+        ]);
+
+        $this->assertNotEquals($debitCard->debitCardTransactions()->doesntExist(), "Sorry, Debit Card Can't Be Deleted");
     }
 
     // Extra bonus for extra tests :)
