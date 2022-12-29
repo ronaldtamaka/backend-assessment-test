@@ -132,5 +132,37 @@ class LoanService
 
             return $receivedRepayment;
         }
+
+        // repay multiple scheduled repayments
+        if ($scheduledRepayment->amount < $receivedRepayment->amount) {
+            $scheduledRepayment->update([
+                'amount' => $scheduledRepayment->amount + 1,
+                'status' => ScheduledRepayment::STATUS_REPAID,
+                'outstanding_amount' => 0
+            ]);
+
+            $remainingAmount = $receivedRepayment->amount - $scheduledRepayment->amount;
+
+            $nextReceivedAt = \Carbon\Carbon::parse($receivedAt)->addMonths(1);
+
+            $nextScheduledRepayment = ScheduledRepayment::query()
+                ->where('loan_id', $loan->id)
+                ->where('due_date', $nextReceivedAt->format('Y-m-d'))
+                ->first();
+
+            $nextScheduledRepayment->update([
+                'amount' => $scheduledRepayment->amount,
+                'status' => ScheduledRepayment::STATUS_PARTIAL,
+                'outstanding_amount' => $remainingAmount
+            ]);
+
+            $outstandingAmount = $loan->outstanding_amount - $receivedRepayment->amount;
+            $loan->update([
+                'outstanding_amount' => $outstandingAmount,
+                'status' => $outstandingAmount == 0 ? Loan::STATUS_REPAID : Loan::STATUS_DUE
+            ]);
+
+            return $receivedRepayment;
+        }
     }
 }
