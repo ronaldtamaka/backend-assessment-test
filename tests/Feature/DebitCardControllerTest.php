@@ -97,6 +97,18 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeASingleDebitCardDetails()
     {
         // get api/debit-cards/{debitCard}
+        $user = User::factory()->create();
+
+        $debitCard = \App\Models\DebitCard::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $checkUserDebitCardExists = \App\Models\DebitCard::query()
+            ->where('id', $debitCard->id)
+            ->where('user_id', $this->user->id)
+            ->exists();
+
+        $this->assertFalse($checkUserDebitCardExists, \Illuminate\Http\Response::HTTP_NOT_FOUND);
     }
 
     public function testCustomerCanActivateADebitCard()
