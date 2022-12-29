@@ -75,6 +75,23 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeASingleDebitCardDetails()
     {
         // get api/debit-cards/{debitCard}
+        $debitCard = \App\Models\DebitCard::factory()->create([
+            'user_id' => $this->user->id,
+        ]);
+
+        $this->getJson('api/debit-cards/' . $debitCard->id)
+            ->assertOk()  // status code 200
+            ->assertJsonStructure([
+                'id',
+                'number',
+                'type',
+                'expiration_date',
+                'is_active',
+            ]);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+        ]);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
