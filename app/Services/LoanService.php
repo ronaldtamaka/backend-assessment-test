@@ -62,6 +62,59 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        //
+        // initial outstanding amount for load and scheduled repayment
+        if ($loan->outstanding_amount == 0 && $loan->status == Loan::STATUS_DUE) {
+            $loan->update(['outstanding_amount' => $loan->amount]);
+            $scheduledRepayments = $loan->scheduledRepayments;
+            foreach ($scheduledRepayments as $scheduledRepayment) {
+                $scheduledRepayment->update([
+                    'outstanding_amount' => $scheduledRepayment->amount
+                ]);
+            }
+        }
+
+        // create new received repayment
+        $receivedRepayment = ReceivedRepayment::create([
+            'loan_id' => $loan->id,
+            'amount' => $amount,
+            'currency_code' => $currencyCode,
+            'received_at' => $receivedAt,
+        ]);
+
+        // get scheduled repayment
+        $scheduledRepayment = ScheduledRepayment::query()
+            ->where('loan_id', $loan->id)
+            ->where('due_date', $receivedAt)
+            ->first();
+
+        // check if scheduled repayment does not exist
+        if ($scheduledRepayment == NULL) {
+            return $receivedRepayment;
+        }
+
+        // repay a scheduled repayment consecutively
+        $lastScheduledRepayment = $loan->scheduledRepayments()->orderBy('id', 'desc')->first();
+        if ($scheduledRepayment->due_date == $lastScheduledRepayment->due_date) {
+            foreach ($loan->scheduledRepayments as $scheduledRepayment) {
+                $scheduledRepayment->update([
+                    'status' => ScheduledRepayment::STATUS_REPAID,
+                    'outstanding_amount' => 0
+                ]);
+            }
+
+            $firstScheduledRepayment = $loan->scheduledRepayments()->orderBy('id')->first();
+            $lastScheduledRepayment->update([
+                'status' => ScheduledRepayment::STATUS_REPAID,
+                'outstanding_amount' => 0,
+                'due_date' => $firstScheduledRepayment->due_date,
+            ]);
+
+            $loan->update([
+                'outstanding_amount' => 0,
+                'status' => Loan::STATUS_REPAID
+            ]);
+
+            return $receivedRepayment;
+        }
     }
 }
