@@ -70,7 +70,7 @@ class DebitCardTransactionControllerTest extends TestCase
         // post /debit-card-transactions
         $this->post('/api/debit-card-transactions', [
                 'debit_card_id' => 1,
-                'amount' => 1000000,
+                'amount' => 101010,
                 'currency_code' => 'IDR',
             ])
             ->assertJsonStructure([
@@ -78,6 +78,12 @@ class DebitCardTransactionControllerTest extends TestCase
                 'currency_code',
             ])
             ->assertSuccessful();
+
+        $this->assertDatabaseHas('debit_card_transactions', [
+            'debit_card_id' => 1,
+            'amount' => 101010,
+            'currency_code' => 'IDR',
+        ]);
     }
 
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
@@ -91,6 +97,12 @@ class DebitCardTransactionControllerTest extends TestCase
                 'currency_code' => 'IDR',
             ])
             ->assertForbidden();
+
+        $this->assertDatabaseMissing('debit_card_transactions', [
+            'debit_card_id' => 2,
+            'amount' => 1000000,
+            'currency_code' => 'IDR',
+        ]);
     }
 
     public function testCustomerCanSeeADebitCardTransaction()

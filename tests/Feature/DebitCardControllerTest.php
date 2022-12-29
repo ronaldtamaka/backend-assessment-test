@@ -66,8 +66,8 @@ class DebitCardControllerTest extends TestCase
         $this->post('/api/debit-cards', [
                 'user_id' => $this->user->id,
                 'type' => 'card type',
-                'number' => rand(1000000000000000, 9999999999999999),
-                'expiration_date' => Carbon::now(),
+                'number' => 1,
+                'expiration_date' => Carbon::now()->format('Y-m-d'),
             ])
             ->assertJsonStructure([
                 'id',
@@ -77,6 +77,11 @@ class DebitCardControllerTest extends TestCase
                 'is_active',
             ])
             ->assertSuccessful();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'type' => 'card type',
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
@@ -104,6 +109,7 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanActivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
+        // dd($this);
         $debitCard = DebitCard::factory()->for($this->user)->create();
         $this->put('/api/debit-cards/' . $debitCard->id, [
                 'is_active' => true,
@@ -116,6 +122,11 @@ class DebitCardControllerTest extends TestCase
                 'is_active',
             ])
             ->assertOk();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+            'disabled_at' => null,
+        ]);
     }
 
     public function testCustomerCanDeactivateADebitCard()
@@ -133,38 +144,81 @@ class DebitCardControllerTest extends TestCase
                 'is_active',
             ])
             ->assertOk();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+            'disabled_at' => Carbon::now(),
+        ]);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
     {
         // put api/debit-cards/{debitCard}
         $currentUserDebitCard = DebitCard::factory()->for($this->user)->create();
-        $anotherUserDebitCard = DebitCard::factory()->for(User::factory()->create())->create();
+        $anotherUserDebitCard = DebitCard::factory()
+            ->for(User::factory()->create())
+            ->create([
+                'number' => 5576428580046635,
+                'type' => "TestCard",
+                'disabled_at' => null,
+            ]);
 
         $this->put('/api/debit-cards/' . $anotherUserDebitCard->id, [
                 'is_active' => false,
             ])
             // ->assertUnauthorized() : return unauthorize response is 401 but the actual output here is 403
             ->assertForbidden();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $anotherUserDebitCard->id,
+            'number' => 5576428580046635,
+            'type' => "TestCard",
+            'disabled_at' => null,
+        ]);
     }
 
     public function testCustomerCanDeleteADebitCard()
     {
         // delete api/debit-cards/{debitCard}
-        $debitCard = DebitCard::factory()->for($this->user)->create();
+        $debitCard = DebitCard::factory()->for($this->user)->create([
+            'number' => 5576428580046635,
+            'type' => "TestCard",
+            'disabled_at' => null,
+        ]);
+
         $this->delete('/api/debit-cards/' . $debitCard->id)
             ->assertNoContent();
+
+        $this->assertSoftDeleted('debit_cards', [
+            'id' => $debitCard->id,
+            'number' => 5576428580046635,
+            'type' => "TestCard",
+            'disabled_at' => null,
+        ]);
     }
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
         // delete api/debit-cards/{debitCard}
         $currentUserDebitCard = DebitCard::factory()->for($this->user)->create();
-        $anotherUserDebitCard = DebitCard::factory()->for(User::factory()->create())->create();
+        $anotherUserDebitCard = DebitCard::factory()
+            ->for(User::factory()->create())
+            ->create([
+                'number' => 5576428580046635,
+                'type' => "TestCard",
+                'disabled_at' => null,
+            ]);
 
         $this->delete('/api/debit-cards/' . $anotherUserDebitCard->id)
             // ->assertUnauthorized() : return unauthorize response is 401 but the actual output here is 403
             ->assertForbidden();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $anotherUserDebitCard->id,
+            'number' => 5576428580046635,
+            'type' => "TestCard",
+            'disabled_at' => null,
+        ]);
     }
 
     // Extra bonus for extra tests :)
