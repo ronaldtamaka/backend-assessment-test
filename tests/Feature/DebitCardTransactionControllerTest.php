@@ -98,6 +98,20 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCanSeeADebitCardTransaction()
     {
         // get /debit-card-transactions/{debitCardTransaction}
+        $debitCardTransaction = \App\Models\DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+
+        $this->getJson('api/debit-card-transactions/' . $debitCardTransaction->id)
+            ->assertOk()  // status code 200
+            ->assertJsonStructure([
+                'amount',
+                'currency_code',
+            ]);
+
+        $this->assertDatabaseHas('debit_card_transactions', [
+            'id' => $debitCardTransaction->id,
+        ]);
     }
 
     public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
