@@ -16,6 +16,7 @@ class DebitCardControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutExceptionHandling();
         $this->user = User::factory()->create();
         Passport::actingAs($this->user);
     }
@@ -23,6 +24,17 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
+        $this->getJson('api/debit-cards')
+            ->assertOk()
+            ->assertJsonStructure([
+                '*' => [
+                    'id',
+                    'number',
+                    'type',
+                    'expiration_date',
+                    'is_active',
+                ]
+            ]);
     }
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
