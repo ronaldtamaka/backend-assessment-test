@@ -116,5 +116,21 @@ class LoanService
 
             return $receivedRepayment;
         }
+
+        // repay a scheduled repayment
+        if ($scheduledRepayment->amount == $receivedRepayment->amount) {
+            $scheduledRepayment->update([
+                'status' => ScheduledRepayment::STATUS_REPAID,
+                'outstanding_amount' => 0
+            ]);
+
+            $outstandingAmount = $loan->outstanding_amount - $receivedRepayment->amount;
+            $loan->update([
+                'outstanding_amount' => $outstandingAmount,
+                'status' => $outstandingAmount == 0 ? Loan::STATUS_REPAID : Loan::STATUS_DUE
+            ]);
+
+            return $receivedRepayment;
+        }
     }
 }
