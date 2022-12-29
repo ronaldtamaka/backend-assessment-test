@@ -52,6 +52,24 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
+        $faker = \Faker\Factory::create();
+        $creditCardType = $faker->creditCardType;
+
+        $request = ['type' => $creditCardType];
+
+        $this->postJson('api/debit-cards', $request)
+            ->assertCreated()
+            ->assertJsonStructure([
+                'id',
+                'number',
+                'type',
+                'expiration_date',
+                'is_active',
+            ]);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'type' => $creditCardType,
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
