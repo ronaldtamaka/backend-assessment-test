@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
+use Illuminate\Http\Request;
 use Validator;
 
 class DebitCardTransactionController extends BaseController
@@ -37,6 +38,11 @@ class DebitCardTransactionController extends BaseController
         return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
     }
 
+    public function indextransdebit(Request $request)
+    {
+        return view('.admin.utama.pages.trans.table');
+    }
+
     /**
      * Create a new debit card transaction
      *
@@ -48,7 +54,8 @@ class DebitCardTransactionController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'amount' => 'required',
-            'currency_code' => 'required'
+            'currency_code' => 'required',
+            'debit_card_id' => 'required'
         ]);
 
         if ($validator->fails()) {

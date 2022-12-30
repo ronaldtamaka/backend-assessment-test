@@ -35,17 +35,11 @@
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
+                @php
+                $segment = Request::segment(1);
+                @endphp
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>
-                            Dashboard
-                            <!-- <span class="right badge badge-danger">New</span> -->
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ url('list-debit-cards') }}" class="nav-link active">
+                    <a href="{{ url('list-debit-cards') }}" class="nav-link <?php echo $segment === 'list-debit-cards' ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-users"></i>
                         <p>
                             Debit Card
@@ -54,7 +48,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url('dashboard/kategori/list') }}" class="nav-link">
+                    <a href="{{ url('list-trans-cards') }}" class="nav-link <?php echo $segment === 'list-trans-cards' ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-list"></i>
                         <p>
                             Debit Card Trans

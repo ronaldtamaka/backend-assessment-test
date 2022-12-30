@@ -5,43 +5,53 @@
     <input name="csrfToken" value="{{ csrf_token() }}" type="hidden">
 
     <div class="modal bd-example-modal-lg fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Add Debit Card</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-
-                    {{ csrf_field() }}
-                    <div class="col-md-12">
-                        <label> Debit Card Type : </label>
+        <form method="post" action="{{ url('debit-card-transactions') }}">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Add Transaction Debit Card</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    <div class="col-md-12">
-                        <select class="form-control" name="type" id="type_select">
-                            @php
-                            $i = 0
-                            @endphp
-                            @foreach($type_debit as $values)
-                            @php
-                            $i++
-                            @endphp
-                            <option value="{{ $i }}">{{ $values }}</option>
-                            @endforeach
-                        </select>
-                        <!-- <input type="text" name="inp_nama_kategori" class="form-control" placeholder="Input Nama Kategori" required="required" /> -->
+                    <div class="modal-body">
+
+                        {{ csrf_field() }}
+
+
+                        <div class="col-md-12">
+                            <label> Debit Card Id : </label>
+                        </div>
+                        <div class="col-md-12">
+                            <input type="number" name="debit_card_id" id="debit_card_id" class="form-control" />
+                            <!-- <input type="text" name="inp_nama_kategori" class="form-control" placeholder="Input Nama Kategori" required="required" /> -->
+                        </div>
+
+
+                        <div class="col-md-12">
+                            <label> Amount : </label>
+                        </div>
+                        <div class="col-md-12">
+                            <input type="number" name="amount" id="amount" class="form-control" />
+                            <!-- <input type="text" name="inp_nama_kategori" class="form-control" placeholder="Input Nama Kategori" required="required" /> -->
+                        </div>
+
+                        <div class="col-md-12">
+                            <label> Currency Code : </label>
+                        </div>
+                        <div class="col-md-12">
+                            <input type="text" name="currency_code" id="currency_code" class="form-control" />
+                            <!-- <input type="text" name="inp_nama_kategori" class="form-control" placeholder="Input Nama Kategori" required="required" /> -->
+                        </div>
+
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" onclick="add_data()" class="btn btn-primary">Save changes</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
                 </div>
             </div>
-        </div>
-
+        </form>
     </div>
 
     <div class="modal bd-example-modal-lg fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -89,7 +99,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">DebitCard Table</h3>
+                        <h3 class="card-title">Transaksi DebitCard Table</h3>
 
                         <div class="card-tools">
                             <div class="input-group input-group-sm" style="width: 150px;">
@@ -105,18 +115,28 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body table-responsive p-0">
+                        <div class="col-md-12" style="padding:20px;">
+                            <label> Find Transactions By Debit Card Id</label>
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <input type="text" name="sr_debit_card" id="sr_debit_card" placeholder="Input Debit Card ID" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
+                                    <Button class="btn btn-primary form-control" onclick="fetch_data()"> Search</Button>
+                                </div>
+                            </div>
+                        </div>
                         <table id="example2" class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Debit Card Number</th>
-                                    <th>Type</th>
-                                    <th>Expiration Date</th>
-                                    <th>Aksi</th>
+                                    <th>Amount</th>
+                                    <th>Currency Code</th>
                                 </tr>
                             </thead>
                             <tbody>
-
+                                <tr>
+                                    <td colspan="2" align="center"> - No Data Shown - </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -168,27 +188,6 @@
         });
     }
 
-    function add_data() {
-        let typeselect = $("#type_select").val();
-
-        $.ajax({
-            url: url_fetch + "/debit-cards",
-            type: 'POST',
-            data: "type=" + typeselect,
-            headers: {
-                'X-CSRF-Token': token
-            },
-            dataType: "json",
-            success: function(result) {
-                alert("data inserted");
-                window.location = url_fetch + "/list-debit-cards";
-                // Do something with the result
-            }
-        });
-
-        return false;
-    }
-
     function edit_data() {
         let typeselect = $("#edit_type_select").val();
 
@@ -210,35 +209,23 @@
         return false;
     }
 
-    $('#example2').DataTable({
-        "ajax": {
-            "url": url_fetch + "/debit-cards",
-            "dataSrc": ""
-        },
-        columns: [{
-                "data": "id"
-            },
-            {
-                "data": "number"
-            },
-            {
-                "data": "type"
-            },
-            {
-                "data": "expiration_date"
-            },
-            {
-                // The `data` parameter refers to the data for the cell (defined by the
-                // `data` option, which defaults to the column being worked with, in
-                // this case `data: 0`.
-                render: function(data, type, row) {
-                    let delUrl = url_fetch + "/debit-cards";
+    function fetch_data() {
+        let debit_id = $("#sr_debit_card").val();
 
-                    return "<div> <a href='#' onClick='show_edit_modal(" + row.id + ")'><i class='fas fa-edit'></i> Edit </a> &nbsp; <a href='#' onClick='delete_debit(" + row.id + ");'><i class='fas fa-trash'></i> Delete</a> </div>";
-                },
-                targets: 0,
+        $('#example2').DataTable({
+            "ajax": {
+                "url": url_fetch + "/debit-card-transactions?debit_card_id=" + debit_id,
+                "dataSrc": ""
             },
-        ]
-    });
+            columns: [{
+                    "data": "amount"
+                },
+                {
+                    "data": "currency_code"
+                }
+            ]
+        });
+
+    }
 </script>
 @endsection

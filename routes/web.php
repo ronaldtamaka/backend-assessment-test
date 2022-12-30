@@ -25,17 +25,17 @@ Route::get('/register', [AuthController::class, 'register']);
 Route::post('new-member-reg', [AuthController::class, 'new_member_reg']);
 Route::post('login-user', [AuthController::class, 'login_user']);
 
-//Route::get('debit-cards', 'DebitCardController@indexdebit');
-//Route::get('debit-cards', 'DebitCardController@indexdebit')->name('dashboard');
 Route::get('/list-debit-cards', [DebitCardController::class, 'indexdebit']);
-
-
 
 Route::get('/debit-cards', [DebitCardController::class, 'index']);
 Route::post('/debit-cards', [DebitCardController::class, 'store']);
 Route::get('/debit-cards/{debitCard}', [DebitCardController::class, 'show']);
 Route::put('/debit-cards/{debitCard}', [DebitCardController::class, 'update']);
 Route::delete('/debit-cards/{debitCard}', [DebitCardController::class, 'destroy']);
+
+// for transactions
+
+Route::get('/list-trans-cards', [DebitCardTransactionController::class, 'indextransdebit']);
 
 Route::get('/debit-card-transactions', [DebitCardTransactionController::class, 'index']);
 Route::post('/debit-card-transactions', [DebitCardTransactionController::class, 'store']);
