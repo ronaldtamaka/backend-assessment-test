@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DebitCardController;
+use App\Http\Controllers\DebitCardTransactionController;
+use App\Models\DebitCardTransaction;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +18,25 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('index');
+})->name("/");
+
+Route::get('/register', [AuthController::class, 'register']);
+Route::post('new-member-reg', [AuthController::class, 'new_member_reg']);
+Route::post('login-user', [AuthController::class, 'login_user']);
+
+Route::get('/list-debit-cards', [DebitCardController::class, 'indexdebit']);
+
+Route::get('/debit-cards', [DebitCardController::class, 'index']);
+Route::post('/debit-cards', [DebitCardController::class, 'store']);
+Route::get('/debit-cards/{debitCard}', [DebitCardController::class, 'show']);
+Route::put('/debit-cards/{debitCard}', [DebitCardController::class, 'update']);
+Route::delete('/debit-cards/{debitCard}', [DebitCardController::class, 'destroy']);
+
+// for transactions
+
+Route::get('/list-trans-cards', [DebitCardTransactionController::class, 'indextransdebit']);
+
+Route::get('/debit-card-transactions', [DebitCardTransactionController::class, 'index']);
+Route::post('/debit-card-transactions', [DebitCardTransactionController::class, 'store']);
+Route::get('/debit-card-transactions/{debitCardTransaction}', [DebitCardTransactionController::class, 'show']);
