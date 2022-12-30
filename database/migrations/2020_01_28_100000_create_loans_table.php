@@ -18,10 +18,10 @@ class CreateLoansTable extends Migration
             $table->unsignedInteger('user_id');
             $table->integer('amount');
             $table->integer('terms');
-            $table->integer('outstanding_amount');
+            $table->integer('outstanding_amount')->nullable();
             $table->string('currency_code');
             $table->date('processed_at');
-            $table->string('status');
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
