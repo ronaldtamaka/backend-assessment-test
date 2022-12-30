@@ -64,6 +64,51 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        //
+        $receivedRepayment = ReceivedRepayment::create([
+            'loan_id'=>$loan->id,
+            'amount'=>$amount,
+            'currency_code'=>$currencyCode,
+            'received_at'=>$receivedAt,
+        ]);
+
+        $status = Loan::STATUS_DUE;
+        $outstanding_amount=$loan->amount;
+        $outstanding_amount=$loan->amount-$loan->scheduledRepayments()->repaid()->sum('amount')-$amount;
+
+        $scheduledRepayment = $loan->scheduledRepayments()->due()->get();
+        foreach($scheduledRepayment as $sr){
+            if ($amount>0){
+                //$loan->amount-=$sr->amount;
+                if ($sr->amount > $amount){
+                    $updateSr = [
+                        'outstanding_amount'=> $sr->amount - $amount,
+                        'status'=>ScheduledRepayment::STATUS_PARTIAL
+                    ];
+                }else{
+                    $updateSr = [
+                        'outstanding_amount'=> 0,
+                        'status'=>ScheduledRepayment::STATUS_REPAID
+                    ];
+                }
+                $amount -= $sr->amount;
+            }else{
+                $updateSr = [
+                    'outstanding_amount'=> $sr->amount,
+                ];
+            }
+
+            //ScheduledRepayment::where("loan_id",$sr->loan_id)->where("amount",$sr->amount)->where("due_date",$sr->due_date)->update($updateSr);
+            $sr->update($updateSr);
+        }
+
+        if ($loan->scheduledRepayments()->repaid()->count()==$loan->terms){
+            $status = Loan::STATUS_REPAID;
+            $outstanding_amount=0;
+        }
+
+        $loan->update(['outstanding_amount'=>$outstanding_amount, 'status'=>$status]);
+
+
+        return $receivedRepayment;
     }
 }

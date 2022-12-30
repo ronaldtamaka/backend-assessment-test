@@ -22,9 +22,10 @@ class ScheduledRepaymentFactory extends Factory
      */
     public function definition(): array
     {
+        $loan = Loan::factory()->create();
         return [
             // TODO: Complete factory
-            'loan_id' => fn () => Loan::factory()->create(),
+            'loan_id' => $loan,
             'amount' => $this->faker->randomDigit,
             'outstanding_amount' => 0,
             'currency_code' => Loan::CURRENCY_VND,
