@@ -58,7 +58,7 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function show(DebitCardShowRequest $request, DebitCard $debitCard)
+    public function show(DebitCard $debitCard)
     {
         return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
     }
@@ -77,6 +77,7 @@ class DebitCardController extends BaseController
             'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
         ]);
 
+
         return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
     }
 
@@ -89,7 +90,7 @@ class DebitCardController extends BaseController
      * @return JsonResponse
      * @throws \Exception
      */
-    public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
+    public function destroy(DebitCard $debitCard)
     {
         $debitCard->delete();
 

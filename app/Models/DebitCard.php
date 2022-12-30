@@ -95,4 +95,5 @@ class DebitCard extends Authenticatable
     {
         return is_null($this->disabled_at);
     }
+
 }
