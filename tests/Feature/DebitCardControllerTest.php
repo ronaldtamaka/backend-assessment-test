@@ -23,7 +23,7 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
-        $this->getJson('api/debit-cards')
+        $this->getJson('debit-cards')
             ->assertOk()
             ->assertJsonStructure([
                 '*' => [

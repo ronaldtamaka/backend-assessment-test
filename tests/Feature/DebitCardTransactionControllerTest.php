@@ -28,29 +28,27 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCardTransactions()
     {
         // get /debit-card-transactions
-        $user = User::factory()->create();
-
-        $debitCard = \App\Models\DebitCard::factory()->create([
-            'user_id' => $user->id,
-        ]);
-
         \App\Models\DebitCardTransaction::factory()->create([
-            'debit_card_id' => $debitCard->id,
+            'debit_card_id' => $this->debitCard->id,
         ]);
 
-        $this->assertNotEquals($debitCard->debitCardTransactions()->doesntExist(), "Sorry, Debit Card Can't Be Deleted");
+        $this->getJson('api/debit-card-transactions?debit_card_id=' . $this->debitCard->id)
+            ->assertOk()->assertJsonStructure([
+                '*' => [
+                    'amount',
+                    'currency_code',
+                ]
+            ]);
     }
 
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
     {
-        // get /debit-card-transactions
-        parent::setUp();
-        $this->withoutExceptionHandling();
-        $this->user = User::factory()->create();
-        $this->debitCard = DebitCard::factory()->create([
-            'user_id' => $this->user->id
+
+        $debitTrans = \App\Models\DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id,
         ]);
-        Passport::actingAs($this->user);
+
+        $this->assertFalse($this->user->is($debitTrans->debitCard), \Illuminate\Http\Response::HTTP_UNAUTHORIZED);
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
