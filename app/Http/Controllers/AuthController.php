@@ -26,7 +26,9 @@ class AuthController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return response()->json(["status" => 200, "message" => "Something Wrong"]);
+            return redirect()->route('/')
+                ->with('error', 'All Field is Required !');
+            //return response()->json(["status" => 200, "message" => "Something Wrong"]);
         }
 
         $data = [
@@ -46,7 +48,9 @@ class AuthController extends BaseController
             // The user is active, not suspended, and exists.
             return redirect("list-debit-cards");
         } else {
-            echo "Username Password tidak Valid";
+            //echo "Username Password tidak Valid";
+            return redirect()->route('/')
+                ->with('error', 'Wrong Username & Password');
         }
     }
 

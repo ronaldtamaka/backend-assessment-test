@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('index');
-});
+})->name("/");
 
 Route::get('/register', [AuthController::class, 'register']);
 Route::post('new-member-reg', [AuthController::class, 'new_member_reg']);

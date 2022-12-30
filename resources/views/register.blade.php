@@ -52,6 +52,8 @@
                             <p class="text-center fw-bold mx-3 mb-0">Or</p>
                         </div>
 
+                        @include('flash-message')
+
                         <div class="form-outline mb-4">
                             <label class="form-label" for="form3Example3">Your Name</label>
                             <input type="text" required="required" id="name" name="name" class="form-control form-control-lg" placeholder="Enter Your Name" />
