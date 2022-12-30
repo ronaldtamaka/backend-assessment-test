@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
+use Illuminate\Http\Request;
+
 class DebitCardController extends BaseController
 {
     /**
@@ -30,6 +32,13 @@ class DebitCardController extends BaseController
             ->get();
 
         return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
+    }
+
+    public function indexdebit(Request $request)
+    {
+        $type_debit = array("Visa", "Master Card", "Rupay", "Contactless");
+
+        return view('.admin.utama.pages.debit.table', compact('type_debit'));
     }
 
     /**
