@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ScheduledRepayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Loan;
 
 class ScheduledRepaymentFactory extends Factory
 {
@@ -23,6 +24,12 @@ class ScheduledRepaymentFactory extends Factory
     {
         return [
             // TODO: Complete factory
+            'loan_id' => fn () => Loan::factory()->create(),
+            'amount' => $this->faker->randomDigit,
+            'outstanding_amount' => 0,
+            'currency_code' => Loan::CURRENCY_VND,
+            'due_date' => now(),
+            'status' => ScheduledRepayment::STATUS_DUE,
         ];
     }
 }
