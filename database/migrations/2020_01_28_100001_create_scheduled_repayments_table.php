@@ -18,7 +18,10 @@ class CreateScheduledRepaymentsTable extends Migration
             $table->unsignedInteger('loan_id');
 
             // TODO: Add missing columns here
-
+            $table->integer('amount');
+            $table->string('currency_code');
+            $table->date('due_date');
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
