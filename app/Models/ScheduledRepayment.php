@@ -27,8 +27,29 @@ class ScheduledRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'loan_id',
+        'amount',
+        'outstanding_amount',
+        'currency_code',
+        'due_date',
+        'status',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($scheduledRepayment) {
+            $scheduledRepayment->outstanding_amount = $scheduledRepayment->amount;
+
+            if ($scheduledRepayment->status === self::STATUS_REPAID) {
+                $scheduledRepayment->outstanding_amount = 0;
+            }
+        });
+    }
 
     /**
      * A Scheduled Repayment belongs to a Loan
