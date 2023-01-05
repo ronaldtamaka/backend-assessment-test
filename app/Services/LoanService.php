@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Loan;
 use App\Models\ReceivedRepayment;
+use App\Models\ScheduledRepayment;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class LoanService
 {
@@ -68,6 +70,53 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        //
+        $receivedRepayment = ReceivedRepayment::create([
+            'loan_id' => $loan->id,
+            'amount' => $amount,
+            'currency_code' => $currencyCode,
+            'received_at' => $receivedAt,
+        ]);
+
+        $scheduledRepayments = $loan->scheduledRepayments()
+            ->where('status', Loan::STATUS_DUE)
+            ->orderBy('due_date', 'asc')
+            ->get();
+
+        $amountLeft = $amount;
+
+        foreach ($scheduledRepayments as $scheduledRepayment) {
+            if ($amountLeft <= 0) {
+                break;
+            }
+
+            $amountTerm = $scheduledRepayment->outstanding_amount;
+
+            if ($amountLeft >= $amountTerm) {
+                $amountLeft -= $amountTerm;
+
+                $scheduledRepayment->update([
+                    'status' => ScheduledRepayment::STATUS_REPAID,
+                    'outstanding_amount' => 0,
+                ]);
+            } else {
+                $scheduledRepayment->update([
+                    'outstanding_amount' => $outstandingAmount = $amountTerm - $amountLeft,
+                    'status' => ScheduledRepayment::STATUS_PARTIAL
+                ]);
+
+                $amountLeft = 0;
+            }
+        }
+
+        $outstandingAmount = $loan->scheduledRepayments()->sum(
+            DB::raw('outstanding_amount')
+        );
+
+        $loan->update([
+            'outstanding_amount' => $outstandingAmount,
+            'status' => $outstandingAmount ? Loan::STATUS_DUE : Loan::STATUS_REPAID,
+        ]);
+
+        return $receivedRepayment;
     }
 }
