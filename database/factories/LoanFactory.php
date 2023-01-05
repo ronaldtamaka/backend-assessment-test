@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\DebitCardTransaction;
 use App\Models\Loan;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class LoanFactory extends Factory
@@ -22,7 +24,15 @@ class LoanFactory extends Factory
     public function definition(): array
     {
         return [
-            // TODO: Complete factory
+            'user_id' => fn () => User::factory()->create(),
+            'terms' => $this->faker->randomNumber(),
+            'amount' => $this->faker->randomNumber(),
+            'currency_code' => $this->faker->randomElement(DebitCardTransaction::CURRENCIES),
+            'processed_at' => $this->faker->dateTime,
+            'status' => $this->faker->randomElement([
+                Loan::STATUS_DUE,
+                Loan::STATUS_REPAID,
+            ]),
         ];
     }
 }
