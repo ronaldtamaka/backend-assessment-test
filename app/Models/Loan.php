@@ -40,6 +40,18 @@ class Loan extends Model
     ];
 
     /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($loan) {
+            $loan->outstanding_amount = $loan->amount;
+        });
+    }
+
+    /**
      * A Loan belongs to a User
      *
      * @return BelongsTo
@@ -57,5 +69,15 @@ class Loan extends Model
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+    
+    /**
+     * A Loan has many Received Payments
+     *
+     * @return HasMany
+     */
+    public function receivedPayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
