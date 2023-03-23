@@ -199,9 +199,24 @@ class DebitCardControllerTest extends TestCase
             ->assertJsonValidationErrors(['is_active' => 'The is active field must be true or false.']);
     }
 
-    public function testCustomerCanDeleteADebitCard()
+    /**
+     * Test Customer Can Delete a Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCanDeleteADebitCard(): void
     {
-        // delete api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $response = $this->deleteJson("/api/debit-cards/{$debitCard->id}");
+        $response
+            ->assertNoContent();
+
+        $model = $this->user->debitCards()->onlyTrashed()->where('id', $debitCard->id)->first();
+
+        $this->assertFalse(is_null($model->deleted_at));
     }
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
