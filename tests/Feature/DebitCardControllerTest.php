@@ -237,6 +237,20 @@ class DebitCardControllerTest extends TestCase
     }
 
     /**
+     * Test Customer Cannot Delete a Debit Card of Other Customer
+     *
+     * @return void
+     */
+    public function testCustomerCannotDeleteADebitCardOfOtherCustomer(): void
+    {
+        $debitCard = DebitCard::factory()->active()->create();
+
+        $response = $this->deleteJson("/api/debit-cards/{$debitCard->id}");
+        $response
+            ->assertForbidden();
+    }
+
+    /**
      * Test Customer Cannot Delete a Debit Card With Transaction
      *
      * @return void
