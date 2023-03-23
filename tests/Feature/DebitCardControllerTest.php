@@ -93,9 +93,25 @@ class DebitCardControllerTest extends TestCase
         ]);
     }
 
-    public function testCustomerCanSeeASingleDebitCardDetails()
+    /**
+     * Test Customer Can See a Single Debit Card Details
+     *
+     * @return void
+     */
+    public function testCustomerCanSeeASingleDebitCardDetails(): void
     {
-        // get api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $response = $this->getJson("/api/debit-cards/{$debitCard->id}");
+        $response
+            ->assertOk();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $response->json('id'),
+            'user_id' => $this->user->id,
+        ]);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
