@@ -131,9 +131,26 @@ class DebitCardControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function testCustomerCanActivateADebitCard()
+    /**
+     * Test Customer Can Activate a Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCanActivateADebitCard(): void
     {
-        // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->expired()->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $response = $this->putJson("/api/debit-cards/{$debitCard->id}", [
+            'is_active' => true
+        ]);
+        $response
+            ->assertOk();
+
+        $model = $this->user->debitCards()->active()->where('id', $response->json('id'))->first();
+
+        $this->assertTrue(!empty($model));
     }
 
     public function testCustomerCanDeactivateADebitCard()
