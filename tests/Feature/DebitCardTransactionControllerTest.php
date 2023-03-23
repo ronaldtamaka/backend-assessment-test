@@ -3,18 +3,37 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DebitCardTransactionControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithFaker;
 
+    /**
+     * Current User Model
+     *
+     * @var User
+     */
     protected User $user;
+
+    /**
+     * Current Debit Card Model
+     *
+     * @var DebitCard
+     */
     protected DebitCard $debitCard;
 
+    /**
+     * Set up method
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -25,34 +44,137 @@ class DebitCardTransactionControllerTest extends TestCase
         Passport::actingAs($this->user);
     }
 
-    public function testCustomerCanSeeAListOfDebitCardTransactions()
+    /**
+     * Test Customer Can See a List of Debit Card Transactions
+     *
+     * @return void
+     */
+    public function testCustomerCanSeeAListOfDebitCardTransactions(): void
     {
-        // get /debit-card-transactions
+        DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id
+        ]);
+
+        $response = $this->json('GET', '/api/debit-card-transactions', [
+            'debit_card_id' => $this->debitCard->id
+        ]);
+        $response
+            ->assertOk()
+            ->assertJsonCount(1);
     }
 
-    public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
+    /**
+     * Test Customer Cannot See a List of Debit Card Transactions of Other Customer Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard(): void
     {
-        // get /debit-card-transactions
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id
+        ]);
+
+        $response = $this->json('GET', '/api/debit-card-transactions', [
+            'debit_card_id' => $debitCard->id
+        ]);
+        $response
+            ->assertForbidden();
     }
 
-    public function testCustomerCanCreateADebitCardTransaction()
+    /**
+     * Test Customer Can Create a Debit Card Transaction
+     *
+     * @return void
+     */
+    public function testCustomerCanCreateADebitCardTransaction(): void
     {
-        // post /debit-card-transactions
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $this->debitCard->id,
+            'amount' => $this->faker()->randomNumber(),
+            'currency_code' => $this->faker()->randomElement(DebitCardTransaction::CURRENCIES),
+        ]);
+        $response->assertCreated();
     }
 
-    public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
+    /**
+     * Test Customer Cannot Create a Debit Card Transaction With Wrong Validation
+     *
+     * @return void
+     */
+    public function testCustomerCannotCreateADebitCardTransactionWithWrongValidation(): void
     {
-        // post /debit-card-transactions
+        $response = $this->postJson('/api/debit-card-transactions');
+        $response
+            ->assertForbidden();
+
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+        $response
+            ->assertStatus(HttpResponse::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['amount', 'currency_code']);
     }
 
-    public function testCustomerCanSeeADebitCardTransaction()
+    /**
+     * Test Customer Cannot Create a Debit Card Transaction to Other Customer Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard(): void
     {
-        // get /debit-card-transactions/{debitCardTransaction}
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id
+        ]);
+
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $debitCard->id,
+            'amount' => $this->faker()->randomNumber(),
+            'currency_code' => $this->faker()->randomElement(DebitCardTransaction::CURRENCIES),
+        ]);
+        $response->assertForbidden();
     }
 
-    public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
+    /**
+     * Test Customer Can See a Debit Card Transaction
+     *
+     * @return void
+     */
+    public function testCustomerCanSeeADebitCardTransaction(): void
     {
-        // get /debit-card-transactions/{debitCardTransaction}
+        $debitCardTransaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id
+        ]);
+
+        $response = $this->getJson("/api/debit-card-transactions/{$debitCardTransaction->id}");
+        $response
+            ->assertOk();
+
+        $this->assertDatabaseHas('debit_card_transactions', [
+            'amount' => $response->json('amount'),
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+    }
+
+    /**
+     * Test Customer Cannot See a Debit Card Transaction Attached to Other Customer Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard(): void
+    {
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id
+        ]);
+        $debitCardTransaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $debitCard->id
+        ]);
+
+        $response = $this->getJson("/api/debit-card-transactions/{$debitCardTransaction->id}");
+        $response
+            ->assertForbidden();
     }
 
     // Extra bonus for extra tests :)

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Loan;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -21,7 +22,7 @@ class CreateLoansTable extends Migration
             $table->integer('outstanding_amount');
             $table->string('currency_code');
             $table->date('processed_at');
-            $table->string('status');
+            $table->string('status')->default(Loan::STATUS_DUE);
             $table->timestamps();
             $table->softDeletes();
 

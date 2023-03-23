@@ -56,8 +56,8 @@ class LoanServiceTest extends TestCase
         ]);
         $this->assertDatabaseHas('scheduled_repayments', [
             'loan_id' => $loan->id,
-            'amount' => 1666,
-            'outstanding_amount' => 1666,
+            'amount' => 1667,
+            'outstanding_amount' => 1667,
             'currency_code' => $currencyCode,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_DUE,
@@ -91,13 +91,13 @@ class LoanServiceTest extends TestCase
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
         ]);
         $scheduledRepaymentThree =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-04-20',
         ]);
@@ -169,7 +169,7 @@ class LoanServiceTest extends TestCase
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
@@ -203,9 +203,9 @@ class LoanServiceTest extends TestCase
 
         // Asserting Last Scheduled Repayment is Repaid
         $this->assertDatabaseHas('scheduled_repayments', [
-            'id' => $scheduledRepaymentThree->id,
+            'id' => $scheduledRepaymentOne->id,
             'loan_id' => $loan->id,
-            'amount' => 1667,
+            'amount' => 1666,
             'outstanding_amount' => 0,
             'currency_code' => $currencyCode,
             'due_date' => '2020-02-20',
@@ -240,7 +240,7 @@ class LoanServiceTest extends TestCase
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_DUE,
@@ -276,7 +276,7 @@ class LoanServiceTest extends TestCase
         $this->assertDatabaseHas('scheduled_repayments', [
             'id' => $scheduledRepaymentOne->id,
             'loan_id' => $loan->id,
-            'amount' => 1667,
+            'amount' => 1666,
             'outstanding_amount' => 0,
             'currency_code' => $currencyCode,
             'due_date' => '2020-02-20',
