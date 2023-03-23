@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DebitCardTransactionControllerTest extends TestCase
 {
@@ -94,6 +95,25 @@ class DebitCardTransactionControllerTest extends TestCase
             'currency_code' => $this->faker()->randomElement(DebitCardTransaction::CURRENCIES),
         ]);
         $response->assertCreated();
+    }
+
+    /**
+     * Test Customer Cannot Create a Debit Card Transaction With Wrong Validation
+     *
+     * @return void
+     */
+    public function testCustomerCannotCreateADebitCardTransactionWithWrongValidation(): void
+    {
+        $response = $this->postJson('/api/debit-card-transactions');
+        $response
+            ->assertForbidden();
+
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+        $response
+            ->assertStatus(HttpResponse::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['amount', 'currency_code']);
     }
 
     /**
