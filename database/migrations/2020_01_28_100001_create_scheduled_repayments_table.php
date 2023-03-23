@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ScheduledRepayment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,9 +17,11 @@ class CreateScheduledRepaymentsTable extends Migration
         Schema::create('scheduled_repayments', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('loan_id');
-
-            // TODO: Add missing columns here
-
+            $table->integer('amount');
+            $table->integer('outstanding_amount');
+            $table->string('currency_code');
+            $table->date('due_date');
+            $table->string('status')->default(ScheduledRepayment::STATUS_DUE);
             $table->timestamps();
             $table->softDeletes();
 
