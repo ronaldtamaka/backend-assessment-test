@@ -6,12 +6,13 @@ use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
 class DebitCardTransactionControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithFaker;
 
     /**
      * Current User Model
@@ -80,9 +81,19 @@ class DebitCardTransactionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function testCustomerCanCreateADebitCardTransaction()
+    /**
+     * Test Customer Can Create a Debit Card Transaction
+     *
+     * @return void
+     */
+    public function testCustomerCanCreateADebitCardTransaction(): void
     {
-        // post /debit-card-transactions
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $this->debitCard->id,
+            'amount' => $this->faker()->randomNumber(),
+            'currency_code' => $this->faker()->randomElement(DebitCardTransaction::CURRENCIES),
+        ]);
+        $response->assertCreated();
     }
 
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
