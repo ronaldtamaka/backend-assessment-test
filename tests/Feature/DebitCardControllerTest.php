@@ -7,10 +7,12 @@ use App\Models\User;
 use App\Models\DebitCard;
 use Laravel\Passport\Passport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DebitCardControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithFaker;
 
     /**
      * Current User Model
@@ -67,9 +69,28 @@ class DebitCardControllerTest extends TestCase
             ->assertJsonCount(0);
     }
 
-    public function testCustomerCanCreateADebitCard()
+    /**
+     * Test Customer Can Create a Debit Card
+     *
+     * @return void
+     */
+    public function testCustomerCanCreateADebitCard(): void
     {
-        // post /debit-cards
+        $response = $this->postJson('/api/debit-cards');
+        $response
+            ->assertStatus(HttpResponse::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['type']);
+        
+        $response = $this->postJson('/api/debit-cards', [
+            'type' => $this->faker->creditCardType,
+        ]);
+        $response
+            ->assertCreated();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $response->json('id'),
+            'user_id' => $this->user->id,
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
