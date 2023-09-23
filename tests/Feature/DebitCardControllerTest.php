@@ -117,11 +117,11 @@ class DebitCardControllerTest extends TestCase
             'expiration_date' => Carbon::now()->addYear(),
         ]);
         $payload = [
-            "is_active" => false
+            "is_active" => ""
         ];
 
-        $this->json('put', "api/debit-cards/0", $payload)
-        ->assertStatus(404);
+        $this->json('put', "api/debit-cards/$debitCard->id", $payload)
+        ->assertStatus(422);
     }
 
     public function testCustomerCanDeleteADebitCard()
@@ -143,7 +143,20 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
         // delete api/debit-cards/{debitCard}
+        $cardData =
+        [
+            'type' => "Gold",
+            'user_id'=> $this->user->id,
+            'number' => rand(1000000000000000, 9999999999999999),
+            'expiration_date' => Carbon::now()->addYear(),
+        ];
+        $debitCard = DebitCard::create($cardData);
+        
+        $this->json('delete', "api/debit-cards/0")
+        ->assertStatus(404);
     }
 
     // Extra bonus for extra tests :)
+
+    
 }
