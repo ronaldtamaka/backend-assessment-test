@@ -93,6 +93,18 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanDeactivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::create([
+            'type' => "Gold",
+            'user_id'=> $this->user->id,
+            'number' => rand(1000000000000000, 9999999999999999),
+            'expiration_date' => Carbon::now()->addYear(),
+        ]);
+        $payload = [
+            "is_active" => false
+        ];
+
+        $this->json('put', "api/debit-cards/$debitCard->id", $payload)
+        ->assertStatus(200);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
