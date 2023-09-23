@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\DebitCard;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
@@ -40,19 +42,28 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
-        $cardData = [
+        $payload = [
             "type" => "Gold",
         ];
 
-        $response = $this->json('POST', 'api/debit-cards', $cardData, ['Accept' => 'application/json']);
-        $responseData = $response->json(); // Assuming your response is already parsed JSON
-        $response->assertCreated();
+        $this->json('POST', 'api/debit-cards', $payload, ['Accept' => 'application/json'])
+        ->assertCreated();
+        $this->assertDatabaseHas('debit_cards', $payload);
 
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $debitCard = DebitCard::create([
+            'type' => "Gold",
+            'user_id'=> $this->user->id,
+            'number' => rand(1000000000000000, 9999999999999999),
+            'expiration_date' => Carbon::now()->addYear(),
+        ]);
+
+        $response = $this->json('get',"api/debit-cards/".$debitCard->id);
+
+        $response->assertStatus(200);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
