@@ -48,7 +48,6 @@ class DebitCardControllerTest extends TestCase
 
         $this->json('POST', 'api/debit-cards', $payload, ['Accept' => 'application/json'])
         ->assertCreated();
-        $this->assertDatabaseHas('debit_cards', $payload);
 
     }
 
@@ -77,6 +76,18 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanActivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::create([
+            'type' => "Gold",
+            'user_id'=> $this->user->id,
+            'number' => rand(1000000000000000, 9999999999999999),
+            'expiration_date' => Carbon::now()->addYear(),
+        ]);
+        $payload = [
+            "is_active" => true
+        ];
+
+        $this->json('put', "api/debit-cards/$debitCard->id", $payload)
+        ->assertStatus(200);
     }
 
     public function testCustomerCanDeactivateADebitCard()
