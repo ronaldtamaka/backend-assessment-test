@@ -32,6 +32,9 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
         // get /debit-cards
+        $response = $this->get('/api/debit-cards1');
+
+        $response->assertStatus(404);
     }
 
     public function testCustomerCanCreateADebitCard()
