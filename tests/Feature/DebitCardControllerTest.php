@@ -22,7 +22,11 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCanSeeAListOfDebitCards()
     {
-        // get /debit-cards
+        $response = $this->get('/api/debit-cards');
+
+        $response->assertStatus(200);
+        
+
     }
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
@@ -33,6 +37,14 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
+        $cardData = [
+            "type" => "Gold",
+        ];
+
+        $response = $this->json('POST', 'api/debit-cards', $cardData, ['Accept' => 'application/json']);
+        $responseData = $response->json(); // Assuming your response is already parsed JSON
+        $response->assertCreated();
+
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
