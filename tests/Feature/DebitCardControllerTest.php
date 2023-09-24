@@ -24,6 +24,12 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCanSeeAListOfDebitCards()
     {
+        $debitCard = DebitCard::create([
+            'type' => "Gold",
+            'user_id'=> $this->user->id,
+            'number' => rand(1000000000000000, 9999999999999999),
+            'expiration_date' => Carbon::now()->addYear(),
+        ]);
         $response = $this->get('/api/debit-cards');
 
         $response->assertStatus(200);
