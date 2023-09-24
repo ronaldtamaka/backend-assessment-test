@@ -84,9 +84,39 @@ class LoanService
         ]);
        
         $loan->update(['outstanding_amount' => $loan->outstanding_amount - $amount]);
-        ScheduledRepayment::where('due_date', $receivedAt)->first()->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
-        $cek = ScheduledRepayment::where('loan_id', $loan->id)->where('status', ScheduledRepayment::STATUS_DUE)->first();
-        if(!$cek)
+        $schedule = ScheduledRepayment::where('due_date', $receivedAt)->first();
+        if($schedule->outstanding_amount < $amount){
+            $amount_schedule = $schedule->outstanding_amount;
+
+            $schedule->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
+            $schedules = ScheduledRepayment::where('due_date','>' ,$receivedAt)->get();
+            if(count($schedules) > 0){
+                $temp = $amount -  $amount_schedule;
+                foreach($schedules as $s)
+                {
+                    $cek = $s->outstanding_amount - $temp;
+                    if($cek > 0){
+                        $s->update(['outstanding_amount' => $cek, 'status' => ScheduledRepayment::STATUS_PARTIAL]);
+                        break;
+                    }elseif($cek < 0){
+                        $s->update(['outstanding_amount' => $temp, 'status' => ScheduledRepayment::STATUS_REPAID]);
+                        $temp = $temp - $s->outstanding_amount;
+
+                    }else{
+                        $s->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
+                        break;
+                    }
+                }
+            }
+            
+            
+
+
+
+        }else{
+            $schedule->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
+        }
+        if($loan->outstanding_amount <= 0)
         {
             $loan->update(['status' => ScheduledRepayment::STATUS_REPAID]);
         }
