@@ -75,13 +75,17 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        $schedule = ReceivedRepayment::create([
-            'loan_id' => $user->id,
+        $received = ReceivedRepayment::create([
+            'loan_id' => $loan->id,
             'amount' => $amount,
-            'due_date' => $final_time,
-            'outstanding_amount' => $amount_terms,
-            'processed_at' => $processedAt,
+            'received_at' => $receivedAt,
+            'outstanding_amount' => $amount,
             'currency_code' => $currencyCode,
         ]);
+       
+        Loan::find($loan->id)->update(['outstanding_amount' => $loan->outstanding_amount - $amount]);
+        ScheduledRepayment::where('due_date', $receivedAt)->first()->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
+        return $received;
+
     }
 }

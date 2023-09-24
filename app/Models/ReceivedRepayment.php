@@ -23,7 +23,17 @@ class ReceivedRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'loan_id',
+        'outstanding_amount',
+        'currency_code',
+        'received_at',
+        'amount',
+    ];
+    protected $casts = [
+        'loan_id' => 'integer',
+        'id' => 'integer',
+        'amount' => 'integer',
+        'outstanding_amount' => 'integer',
     ];
 
     /**
