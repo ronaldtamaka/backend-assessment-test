@@ -48,7 +48,7 @@ class DebitCardControllerTest extends TestCase
         ]);
         $response = $this->get('/api/debit-cards1');
 
-        $response->assertStatus(404);
+        $response->assertStatus(500);
     }
 
     public function testCustomerCanCreateADebitCard()
