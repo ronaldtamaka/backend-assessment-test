@@ -83,8 +83,13 @@ class LoanService
             'currency_code' => $currencyCode,
         ]);
        
-        Loan::find($loan->id)->update(['outstanding_amount' => $loan->outstanding_amount - $amount]);
+        $loan->update(['outstanding_amount' => $loan->outstanding_amount - $amount]);
         ScheduledRepayment::where('due_date', $receivedAt)->first()->update(['outstanding_amount' => 0, 'status' => ScheduledRepayment::STATUS_REPAID]);
+        $cek = ScheduledRepayment::where('loan_id', $loan->id)->where('status', ScheduledRepayment::STATUS_DUE)->first();
+        if(!$cek)
+        {
+            $loan->update(['status' => ScheduledRepayment::STATUS_REPAID]);
+        }
         return $received;
 
     }

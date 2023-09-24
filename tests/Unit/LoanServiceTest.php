@@ -165,6 +165,8 @@ class LoanServiceTest extends TestCase
             'amount' => 5000,
             'currency_code' => Loan::CURRENCY_VND,
             'processed_at' => '2020-01-20',
+            'outstanding_amount' => 1667,
+            'status' => Loan::STATUS_DUE,
         ]);
 
         // First two scheduled repayments are already repaid
@@ -174,6 +176,7 @@ class LoanServiceTest extends TestCase
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-02-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
+            'outstanding_amount' => 0,
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
@@ -181,6 +184,7 @@ class LoanServiceTest extends TestCase
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
+            'outstanding_amount' => 0,
         ]);
         // Only the last one is due
         $scheduledRepaymentThree =  ScheduledRepayment::factory()->create([
@@ -189,6 +193,7 @@ class LoanServiceTest extends TestCase
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-04-20',
             'status' => ScheduledRepayment::STATUS_DUE,
+            'outstanding_amount' => 1667,
         ]);
 
         $receivedRepayment = 1667;
@@ -196,7 +201,7 @@ class LoanServiceTest extends TestCase
         $receivedAt = '2020-04-20';
 
         // Repaying the last one
-        $loan = $this->loanService->repayLoan($loan, $receivedRepayment, $currencyCode, $receivedAt);
+        $received = $this->loanService->repayLoan($loan, $receivedRepayment, $currencyCode, $receivedAt);
 
         // Asserting Loan values
         $this->assertDatabaseHas('loans', [
@@ -216,7 +221,7 @@ class LoanServiceTest extends TestCase
             'amount' => 1667,
             'outstanding_amount' => 0,
             'currency_code' => $currencyCode,
-            'due_date' => '2020-02-20',
+            'due_date' => '2020-04-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
         ]);
 
