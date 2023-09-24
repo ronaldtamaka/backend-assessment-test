@@ -30,19 +30,13 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCardTransactions()
     {
         // get /debit-card-transactions
-        $debitCard = DebitCard::create([
-            'type' => "Gold",
-            'user_id'=> $this->user->id,
-            'number' => rand(1000000000000000, 9999999999999999),
-            'expiration_date' => Carbon::now()->addYear(),
-        ]);
-        $debitCardTransaction = $debitCard->debitCardTransactions()->create([
+        $debitCardTransaction = $this->debitCard->debitCardTransactions()->create([
             'amount' => 200000,
-            'currency_code' => "coba coba",
+            'currency_code' => "IDR",
         ]);
 
 
-        $response = $this->get('/api/debit-card-transactions?debit_card_id='.$debitCard->id);
+        $response = $this->get('/api/debit-card-transactions?debit_card_id='.$this->debitCard->id);
 
         $response->assertStatus(200);
     }
@@ -50,15 +44,9 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
     {
         // get /debit-card-transactions
-        $debitCard = DebitCard::create([
-            'type' => "Gold",
-            'user_id'=> $this->user->id,
-            'number' => rand(1000000000000000, 9999999999999999),
-            'expiration_date' => Carbon::now()->addYear(),
-        ]);
-        $debitCardTransaction = $debitCard->debitCardTransactions()->create([
+        $debitCardTransaction = $this->debitCard->debitCardTransactions()->create([
             'amount' => 200000,
-            'currency_code' => "coba coba",
+            'currency_code' => "IDR",
         ]);
 
 
@@ -70,6 +58,14 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCanCreateADebitCardTransaction()
     {
         // post /debit-card-transactions
+
+        $payload = [
+            "amount" => 200000,
+            'currency_code' => "IDR",
+            'debit_card_id' => $this->debitCard->id
+        ];
+        $this->json('POST', 'api/debit-card-transactions', $payload, ['Accept' => 'application/json'])
+        ->assertCreated();
     }
 
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
