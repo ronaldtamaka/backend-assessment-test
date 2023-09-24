@@ -38,7 +38,7 @@ class LoanService
             $final_time = date("Y-m-d", strtotime($x." month", $time));
             if($x == $terms){
                 $schedule = ScheduledRepayment::create([
-                    'loan_id' => $user->id,
+                    'loan_id' => $loan->id,
                     'amount' => $amount_terms + $remainder,
                     'due_date' => $final_time,
                     'outstanding_amount' => $amount_terms + $remainder,
@@ -49,7 +49,7 @@ class LoanService
 
             }else{
                 $schedule = ScheduledRepayment::create([
-                    'loan_id' => $user->id,
+                    'loan_id' => $loan->id,
                     'amount' => $amount_terms,
                     'due_date' => $final_time,
                     'outstanding_amount' => $amount_terms,
@@ -75,6 +75,13 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        
+        $schedule = ReceivedRepayment::create([
+            'loan_id' => $user->id,
+            'amount' => $amount,
+            'due_date' => $final_time,
+            'outstanding_amount' => $amount_terms,
+            'processed_at' => $processedAt,
+            'currency_code' => $currencyCode,
+        ]);
     }
 }
