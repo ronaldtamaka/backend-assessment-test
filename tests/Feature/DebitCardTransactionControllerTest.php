@@ -71,6 +71,13 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
     {
         // post /debit-card-transactions
+        $payload = [
+            "amount" => 200000,
+            'currency_code' => "coba coab",
+            'debit_card_id' => $this->debitCard->id
+        ];
+        $this->json('POST', 'api/debit-card-transactions', $payload, ['Accept' => 'application/json'])
+        ->assertStatus(422);
     }
 
     public function testCustomerCanSeeADebitCardTransaction()
