@@ -39,11 +39,7 @@ class DebitCardTransaction extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = [
-        'debit_card_id',
-        'amount',
-        'currency_code',
-    ];
+    protected $guarded = [];
 
     /**
      * A Debit card transaction belongs to a Debit card

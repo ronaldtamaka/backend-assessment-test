@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
-use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
@@ -28,124 +27,122 @@ class DebitCardTransactionControllerTest extends TestCase
 
     public function testCustomerCanSeeAListOfDebitCardTransactions()
     {
-        $debitCardTransaction = DebitCardTransaction::factory(3)->create([
-            'debit_card_id' => $this->debitCard->id
-        ]);
+        $user = User::factory()->create();
+        $debitCard = DebitCard::factory()->create(['user_id' => $user->id]);
+        DebitCardTransaction::factory(3)->create(['debit_card_id' => $debitCard->id]);
 
-        $response = $this->get('/api/debit-card-transactions');
-
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'application/json');
-
-        $response->assertJsonStructure([
-            'data' => [
-                '*' => [
-                    'id',
-                    'debit_card_id',
-                    'amount',
-                    'description',
-
-                ]
-            ]
-        ]);
-
-        foreach ($debitCardTransaction as $transaction) {
-            $response->assertJson(['data' => [
-                ['id' => $transaction->id],
-            ]]);
-        }
+        $this->browse(function (Browser $browser) use ($user, $debitCard) {
+            $browser->loginAs($user);
+            $browser->visit('/api/debit-card-transactions');
+            $browser->assertSee('List of Debit Card Transactions');
+            $transactions = DebitCardTransaction::where('debit_card_id', $debitCard->id)->get();
+            foreach ($transactions as $transaction) {
+                $browser->assertSee($transaction->amount);
+                $browser->assertSee($transaction->currency_code);
+            }
+        });
     }
 
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
     {
-        $otherUser = User::factory()->create();
-        $otherUserDebitCard = DebitCard::factory()->create([
-            'user_id' => $otherUser->id
-        ]);
+        $user1 = User::factory()->create();
 
-        $otherUserTransaction = DebitCardTransaction::factory(3)->create([
-            'debit_card_id' => $otherUserDebitCard->id
-        ]);
+        $user2 = User::factory()->create();
 
-        $response = $this->get('/api/debit-card-transactions');
+        $debitCard1 = DebitCard::factory()->create(['user_id' => $user1->id]);
+        $debitCard2 = DebitCard::factory()->create(['user_id' => $user2->id]);
+        DebitCardTransaction::factory(3)->create(['debit_card_id' => $debitCard1->id]);
+        DebitCardTransaction::factory(2)->create(['debit_card_id' => $debitCard2->id]);
 
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'application/json');
+        $this->browse(function (Browser $browser) use ($user1, $user2, $debitCard1, $debitCard2) {
+            $browser->loginAs($user1);
+            $browser->visit('/api/debit-card-transactions');
 
-        foreach ($otherUserTransaction as $transaction) {
-            $response->assertJsonMissing(['data' => [
-                ['id' => $transaction->id],
-            ]]);
-        }
+            $browser->assertSee('List of Debit Card Transactions');
+
+            $transactions1 = DebitCardTransaction::where('debit_card_id', $debitCard1->id)->get();
+            foreach ($transactions1 as $transaction) {
+                $browser->assertSee($transaction->amount);
+                $browser->assertSee($transaction->currency_code);
+            }
+            $transactions2 = DebitCardTransaction::where('debit_card_id', $debitCard2->id)->get();
+            foreach ($transactions2 as $transaction) {
+                $browser->assertDontSee($transaction->amount);
+                $browser->assertDontSee($transaction->currency_code);
+            }
+        });
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
     {
-        $transactionData = [
-            'debit_card_id' => $this->debitCard->id,
-            'amount' => 100.00,
-            'description' => 'Purchase',
-        ];
 
-        $response = $this->post('/api/debit-card-transactions', $transactionData);
+        $user = User::factory()->create();
 
-        $response->assertStatus(201);
+        $debitCard = DebitCard::factory()->create(['user_id' => $user->id]);
+
+        $this->browse(function (Browser $browser) use ($user, $debitCard) {
+            $browser->loginAs($user);
+            $browser->visit('/api/create-debit-card-transaction');
+
+
+            $browser->type('amount', 100);
+            $browser->type('currency_code', 'USD');
+            $browser->press('Create Transaction');
+            $browser->assertSee('Transaction created successfully');
+        });
     }
 
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
     {
-        $otherUser = User::factory()->create();
-        $otherUserDebitCard = DebitCard::factory()->create([
-            'user_id' => $otherUser->id
-        ]);
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $debitCard1 = DebitCard::factory()->create(['user_id' => $user1->id]);
 
-        $transactionData = [
-            'debit_card_id' => $otherUserDebitCard->id,
-            'amount' => 100.00,
-            'description' => 'Purchase',
-        ];
+        $this->browse(function (Browser $browser) use ($user2, $debitCard1) {
+            $browser->loginAs($user2);
+            $browser->visit('/api/create-debit-card-transaction');
 
-        $response = $this->post('/api/debit-card-transactions', $transactionData);
 
-        $response->assertStatus(200);
+            $browser->type('debit_card_id', $debitCard1->id);
+            $browser->type('amount', 100);
+            $browser->type('currency_code', 'USD');
+            $browser->press('Create Transaction');
+            $browser->assertSee('You are not authorized to perform this action'); // Modify as needed based on your error message
+        });
     }
 
     public function testCustomerCanSeeADebitCardTransaction()
     {
-        $transaction = DebitCardTransaction::factory()->create([
-            'debit_card_id' => $this->debitCard->id
-        ]);
+        $user = User::factory()->create();
+        $debitCard = DebitCard::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get("/api/debit-card-transactions/{$transaction->id}");
+        $transaction = DebitCardTransaction::factory()->create(['debit_card_id' => $debitCard->id]);
 
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'application/json');
+        $this->browse(function (Browser $browser) use ($user, $transaction) {
 
-        $response->assertJsonStructure([
-            'data' => [
-                'id',
-                'debit_card_id',
-                'amount',
-                'description',
-                
-            ]
-        ]);
+            $browser->loginAs($user);
+            $browser->visit("/api/debit-card-transactions/{$transaction->id}");
+
+            $browser->assertSee('Transaction Details');
+            $browser->assertSee($transaction->amount);
+            $browser->assertSee($transaction->currency_code);
+        });
     }
 
     public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
     {
-        $otherUser = User::factory()->create();
-        $otherUserDebitCard = DebitCard::factory()->create([
-            'user_id' => $otherUser->id
-        ]);
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $debitCard1 = DebitCard::factory()->create(['user_id' => $user1->id]);
 
-        $transaction = DebitCardTransaction::factory()->create([
-            'debit_card_id' => $otherUserDebitCard->id
-        ]);
 
-        $response = $this->get("/api/debit-card-transactions/{$transaction->id}");
+        $transaction = DebitCardTransaction::factory()->create(['debit_card_id' => $debitCard1->id]);
 
-        $response->assertStatus(200);
+        $this->browse(function (Browser $browser) use ($user2, $transaction) {
+            $browser->loginAs($user2);
+            $browser->visit("/api/debit-card-transactions/{$transaction->id}");
+            $browser->assertSee('You are not authorized to perform this action');
+        });
     }
 
     // Extra bonus for extra tests :)

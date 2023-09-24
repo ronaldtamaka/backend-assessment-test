@@ -27,13 +27,7 @@ class DebitCard extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = [
-        'user_id',
-        'number',
-        'type',
-        'expiration_date',
-        'disabled_at',
-    ];
+    protected $guarded = [];
 
     /**
      * The attributes that should be mutated to dates.
