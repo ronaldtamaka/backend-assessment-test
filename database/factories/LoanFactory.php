@@ -23,6 +23,18 @@ class LoanFactory extends Factory
     {
         return [
             // TODO: Complete factory
+            'user_id' => fn () => User::factory()->create(),
+            'terms' => $this->faker->randomElement([3, 6]),
+            'amount' => $this->faker->randomNumber(),
+            'currency_code' => $this->faker->randomElement([
+                Loan::CURRENCY_SGD,
+                Loan::CURRENCY_VND,
+            ]),
+            'processed_at' => $this->faker->date(),
+            'status' => $this->faker->randomElement([
+                Loan::STATUS_DUE,
+                Loan::STATUS_REPAID,
+            ]),
         ];
     }
 }
