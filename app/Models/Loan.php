@@ -38,6 +38,13 @@ class Loan extends Model
         'processed_at',
         'status',
     ];
+    protected $casts = [
+        'loan_id' => 'integer',
+        'id' => 'integer',
+        'amount' => 'integer',
+        'outstanding_amount' => 'integer',
+    ];
+
 
     /**
      * A Loan belongs to a User
