@@ -40,6 +40,31 @@ class Loan extends Model
     ];
 
     /**
+     * The default attributes value
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'status' => self::STATUS_DUE,
+    ];
+
+    /**
+     * The function run when CRUD event happen
+     *
+     * @var array
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function($model){
+            if(!$model->outstanding_amount) {
+                $model->outstanding_amount = $model->amount;
+            }
+        });
+    }
+
+    /**
      * A Loan belongs to a User
      *
      * @return BelongsTo
@@ -57,5 +82,15 @@ class Loan extends Model
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    /**
+     * A Loan has many Received Repayments
+     *
+     * @return HasMany
+     */
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
