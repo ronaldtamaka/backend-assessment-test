@@ -22,9 +22,7 @@ class ReceivedRepayment extends Model
      *
      * @var array
      */
-    protected $fillable = [
-        //
-    ];
+    protected $guarded = [];
 
     /**
      * A Received Repayment belongs to a Loan

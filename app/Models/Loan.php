@@ -29,15 +29,7 @@ class Loan extends Model
      *
      * @var array
      */
-    protected $fillable = [
-        'user_id',
-        'amount',
-        'terms',
-        'outstanding_amount',
-        'currency_code',
-        'processed_at',
-        'status',
-    ];
+    protected $guarded = [];
 
     /**
      * A Loan belongs to a User
