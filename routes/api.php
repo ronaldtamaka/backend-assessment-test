@@ -24,7 +24,7 @@ Route::middleware('auth:api')
         Route::put('debit-cards/{debitCard}', [DebitCardController::class, 'update']);
         Route::delete('debit-cards/{debitCard}', [DebitCardController::class, 'destroy']);
 
-        // Debit card transactions endpoints
+        // routes Debit card transactions endpoints
         Route::get('debit-card-transactions', [DebitCardTransactionController::class, 'index']);
         Route::post('debit-card-transactions', [DebitCardTransactionController::class, 'store']);
         Route::get('debit-card-transactions/{debitCardTransaction}', [DebitCardTransactionController::class, 'show']);
