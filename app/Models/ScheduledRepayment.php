@@ -26,15 +26,10 @@ class ScheduledRepayment extends Model
      *
      * @var array
      */
-    protected $fillable = [
-        //
-    ];
+    protected $guarded = ['id'];
 
-    /**
-     * A Scheduled Repayment belongs to a Loan
-     *
-     * @return BelongsTo
-     */
+
+    
     public function loan()
     {
         return $this->belongsTo(Loan::class, 'loan_id');

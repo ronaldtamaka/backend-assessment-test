@@ -20,6 +20,11 @@ class DebitCardResource extends JsonResource
      */
     public function toArray($request)
     {
+        // dd($this);
+        if (empty($this->resource)) 
+            return 'empty data';
+
+
         return [
             'id' => $this->id,
             'number' => $this->number,
