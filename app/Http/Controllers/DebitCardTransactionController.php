@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class DebitCardTransactionController extends BaseController
 {
@@ -27,8 +28,16 @@ class DebitCardTransactionController extends BaseController
      */
     public function index(Request $request)
     {
-        $debitCard = DebitCard::find($request->input('debit_card_id'));
+         
+        $validator = Validator::make($request->all(), [
+            'debit_card_id' => 'required'
+        ]);
 
+        if($validator->fails()){
+            return response()->json($validator->messages(), 201);
+        }
+        $debitCard = DebitCard::find($request->input('debit_card_id'));
+        
         $debitCardTransactions = $debitCard
             ->debitCardTransactions()
             ->get();
@@ -44,6 +53,17 @@ class DebitCardTransactionController extends BaseController
      */
     public function store(Request $request)
     {
+        
+        $validator = Validator::make($request->all(), [
+            'debit_card_id' => 'required',
+            'amount' => 'required',
+            'currency_code' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->messages(), 201);
+        }
+
         $debitCard = DebitCard::find($request->input('debit_card_id'));
         $debitCardTransaction = $debitCard->debitCardTransactions()->create([
             'amount' => $request->input('amount'),

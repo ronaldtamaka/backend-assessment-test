@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Loan;
 
 class LoanController extends BaseController
 {
@@ -35,7 +36,7 @@ class LoanController extends BaseController
             'outstanding_amount' => $request->amount,
             'currency_code' =>  $request->currency_code,
             'processed_at' => $request->processed_at,
-            'status' =>  'not paid',
+            'status' =>  Loan::STATUS_DUE,
         ]);
         $scheduledrepayment = $scheduledrepayment->fresh();
         $ciclan = $request->amount / $request->terms;
@@ -48,7 +49,7 @@ class LoanController extends BaseController
                 'loan_id' => $scheduledrepayment->id,
                 'pay_month' => $date,
                 'pay_amount' => $ciclan,
-                'status' => 'not paid',
+                'status' => ScheduledRepayment::STATUS_DUE,
             ]);
         }
 
@@ -60,26 +61,27 @@ class LoanController extends BaseController
         $user =  Auth::userOrFail();
 
         $loan =  $user->loans()->where('id', $request->loan);
-
         // inputan yg di isi jika melunasi semua cicilan pada 1 tagiahan berisi id loan
         if ($request->repaymentAll == 'all') {
-              $loan = $user->loans()->where('id', $request->loan)->update([
+            $loan = $user->loans()->where('id', $loan->first()->id)->update([
                 'outstanding_amount' => 0,
-                'status' =>  'paid',
+                'status' => Loan::STATUS_REPAID,
             ]);
 
-            $sc = ScheduledRepayment::where('loan_id', $loan->first()->id)->where('status', 'not paid')->get();
+            // dd( $loan->first()->id);
+            // $sc = ScheduledRepayment::where('loan_id', $loan->first()->id)->where('status', 'due')->get();
+            $sc = ScheduledRepayment::where('loan_id', $request->loan)->where('status', ScheduledRepayment::STATUS_DUE)->get();
 
             foreach ($sc as $key => $value) {
                 ScheduledRepayment::where('id', $value->id)->update([
-                    'status' => 'paid'
+                    'status' => ScheduledRepayment::STATUS_REPAID
                 ]);
 
                 // karna tidak ada admin pembayaran auto diterima (accept/reject)
                 ReceivedRepayment::create([
                     'loan_id' => $user->loans->where('id', $request->loan)->first()->id,
                     'scheduled_repayment_id' => $value->id,
-                    'pay_date' => date("Y-m-d"),
+                    'pay_month' => date("Y-m-d"),
                     'status' => 'accept',
                 ]);
 
@@ -91,21 +93,21 @@ class LoanController extends BaseController
         
         $loanup = clone $loan;
 
-       $sc =  ScheduledRepayment::where('id', $repayment)->first();
-
+        $sc =  ScheduledRepayment::where('id', $repayment)->first();
+        // dd($sc->pay_amount);
         $loanup->update([
             'outstanding_amount' => $loan->first()->outstanding_amount - $sc->pay_amount,
-            'status' => $loan->first()->outstanding_amount - $sc->pay_amount == 0 ? 'paid' : 'not paid',
+            'status' => $loan->first()->outstanding_amount - $sc->pay_amount == 0 ? ScheduledRepayment::STATUS_REPAID : ScheduledRepayment::STATUS_PARTIAL,
         ]);
 
        $sc->update([
-            'status' => 'paid'
+            'status' => ScheduledRepayment::STATUS_REPAID
         ]);
 
         ReceivedRepayment::create([
             'loan_id' => $loan->first()->id,
             'scheduled_repayment_id' => $repayment,
-            'pay_date' => date("Y-m-d"),
+            'pay_month' => date("Y-m-d"),
             'status' => 'accept',
         ]);
 

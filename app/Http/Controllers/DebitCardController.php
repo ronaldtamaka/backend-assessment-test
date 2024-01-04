@@ -105,6 +105,6 @@ class DebitCardController extends BaseController
     public function destroy($debitCard)
     {
         $debitCard = DebitCard::where('user_id', Auth::id() )->find($debitCard)->delete();
-        return response()->json(['data' =>'data deleted successfully'], HttpResponse::HTTP_NO_CONTENT);
+        return response()->json(['data' =>'data deleted successfully'], HttpResponse::HTTP_OK);
     }
 }
