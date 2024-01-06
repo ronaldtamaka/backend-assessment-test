@@ -39,6 +39,22 @@ class Loan extends Model
         'status',
     ];
 
+     /**
+     * The function run when CRUD event happen
+     *
+     * @var array
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function($model){
+            if(!$model->outstanding_amount) {
+                $model->outstanding_amount = $model->amount;
+            }
+        });
+    }
+
     /**
      * A Loan belongs to a User
      *
@@ -58,4 +74,15 @@ class Loan extends Model
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
     }
+
+    /**
+     * A Loan has many Received Repayments
+     *
+     * @return HasMany
+     */
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
+    }
+
 }
