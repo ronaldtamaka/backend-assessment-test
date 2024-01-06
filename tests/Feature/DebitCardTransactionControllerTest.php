@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
@@ -27,32 +28,73 @@ class DebitCardTransactionControllerTest extends TestCase
 
     public function testCustomerCanSeeAListOfDebitCardTransactions()
     {
-        // get /debit-card-transactions
+        $data = [
+            'debit_card_id' =>  $this->debitCard->id,
+        ];
+        $response = $this->get('api/debit-card-transactions', $data);
+        $response->assertStatus(403);
+        $response->assertForbidden();
     }
 
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
     {
-        // get /debit-card-transactions
+        $newUser = User::factory()->create();
+        $newUserDebitCard = DebitCard::factory()->for($newUser)->create();
+        $data = [
+            'debit_card_id' => $newUserDebitCard->id,
+        ];
+        $response = $this->get('api/debit-card-transactions', $data);
+
+        $response->assertStatus(403);
+        $response->assertForbidden();
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
     {
-        // post /debit-card-transactions
+        $data = [
+            'debit_card_id' => 1,
+            'amount' => 101010,
+            'currency_code' => 'IDR',
+        ];
+        $response = $this->post('/api/debit-card-transactions', $data);
+        $response->assertStatus(201);
+        $response->assertSuccessful();
     }
 
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
     {
-        // post /debit-card-transactions
+        DebitCard::factory()->create();
+        $data = [
+            'debit_card_id' => 2,
+            'amount' => 1000000,
+            'currency_code' => 'IDR',
+        ];
+
+        $response = $this->post('/api/debit-card-transactions', $data);
+        $response->assertStatus(403);
+        $response->assertForbidden();
     }
 
     public function testCustomerCanSeeADebitCardTransaction()
     {
-        // get /debit-card-transactions/{debitCardTransaction}
+        $debitCardTransaction = DebitCardTransaction::factory()->for($this->debitCard)->create();
+
+        $response = $this->get('/api/debit-card-transactions/' . $debitCardTransaction->id);
+        $response->assertStatus(200);
+        $response->assertOk();
     }
 
     public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
     {
-        // get /debit-card-transactions/{debitCardTransaction}
+        $newUser = User::factory()->create();
+        $newUserDebitCard = DebitCard::factory()->for($newUser)->create();
+
+        DebitCardTransaction::factory()->for($this->debitCard)->create();
+        $newUserDebitCardTransaction = DebitCardTransaction::factory()->for($newUserDebitCard)->create();
+
+        $response = $this->get('/api/debit-card-transactions/' . $newUserDebitCardTransaction->id);
+        $response->assertStatus(403);
+        $response->assertForbidden();
     }
 
     // Extra bonus for extra tests :)
