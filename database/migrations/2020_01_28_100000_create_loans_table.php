@@ -15,7 +15,7 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
+            $table->bigInteger('user_id')->unsigned();
             $table->integer('amount');
             $table->integer('terms');
             $table->integer('outstanding_amount');
