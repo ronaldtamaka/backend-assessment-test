@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
+use App\Models\DebitCard;
 use Tests\TestCase;
 
 class DebitCardControllerTest extends TestCase
@@ -23,6 +24,17 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
+        DebitCard::factory()->count(3)->for($this->user)->create();
+
+        $this->get('/api/debit-cards')
+            ->assertJsonStructure([[
+                'id',
+                'number',
+                'type',
+                'expiration_date',
+                'is_active',
+            ]])
+            ->assertOk();
     }
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
@@ -33,6 +45,12 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
+        $debit = DebitCard::factory()->count(1)->for($this->user)->create();
+
+        $res = $this->post('/api/debit-cards', [
+            
+        ]);
+
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
