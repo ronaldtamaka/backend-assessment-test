@@ -23,7 +23,9 @@ class ReceivedRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'amount',
+        'currency_code',
+        'received_at',
     ];
 
     /**
