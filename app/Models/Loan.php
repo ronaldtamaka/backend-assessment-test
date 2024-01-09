@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,22 @@ class Loan extends Model
         'status',
     ];
 
+    protected $casts = [
+        'amount' => 'integer',
+        'outstanding_amount' => 'integer',
+    ];
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function(Loan $loan){
+            if(!$loan->outstanding_amount) {
+                $loan->outstanding_amount = $loan->amount;
+            }
+        });
+    }
+
     /**
      * A Loan belongs to a User
      *
@@ -57,5 +74,10 @@ class Loan extends Model
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
