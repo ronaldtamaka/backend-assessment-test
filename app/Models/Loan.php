@@ -39,6 +39,23 @@ class Loan extends Model
         'status',
     ];
 
+    protected $casts = [
+        'amount' => 'integer',
+        'outstanding_amount' => 'integer',
+    ];
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function($model){
+            if(!$model->outstanding_amount) {
+                $model->outstanding_amount = $model->amount;
+            }
+        });
+
+    }
+
     /**
      * A Loan belongs to a User
      *
@@ -58,4 +75,10 @@ class Loan extends Model
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
     }
+
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
+    }
+
 }
