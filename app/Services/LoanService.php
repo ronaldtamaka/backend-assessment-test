@@ -96,7 +96,11 @@ class LoanService
             
         }
 
-        $loan->outstanding_amount = $loan->amount - $amount;
+        $paidAmount = $loan->scheduledRepayments()
+            ->where('status', ScheduledRepayment::STATUS_REPAID)
+            ->sum('amount');
+        
+        $loan->outstanding_amount = $loan->amount - $paidAmount;
         $loan->save();
 
         return $paymentReceived;
