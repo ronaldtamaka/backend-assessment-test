@@ -30,12 +30,11 @@ class DebitCardControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function testCustomerCanSeeAListOfDebitCards()
+    public function testCustomerCanViewTheirNoDebitCards()
     {
         // get /debit-cards
-        // empty debit card
+        // No debit cards associated
         $response = $this->getJson('/api/debit-cards');
-        // dd($response);
         $response
             ->assertOk()
             ->assertJson([])
@@ -50,7 +49,11 @@ class DebitCardControllerTest extends TestCase
         $this->assertDatabaseMissing('debit_cards', [
             'user_id' => $this->user->id,
         ]);
+    }
 
+    public function testCustomerCanSeeAListOfDebitCards()
+    {
+        // get /debit-cards
         // has debit card
         $debitCard = DebitCard::factory()->active()->create([
             'user_id' => $this->user->id
@@ -79,11 +82,55 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
         // get /debit-cards
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id
+        ]);
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response
+            ->assertOk()
+            ->assertJson([])
+            ->assertJsonMissing([
+                'id' => $debitCard->id,
+                'number' => $debitCard->number,
+                'type' => $debitCard->type,
+                'expiration_date' => $debitCard->expiration_date,
+                'is_active' => $debitCard->is_active,
+            ]);
+
+        $this->assertDatabaseMissing('debit_cards', [
+            'id' => $debitCard->id,
+            'user_id' => $this->user->id, // Ensure the other user's debit card is not associated with the authenticated user
+        ]);
     }
 
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
+        $response = $this->postJson('api/debit-cards', [
+            'type' => 'TEST'
+        ]);
+        // dd($response->json()['id']);
+        $response->assertCreated()
+            ->assertJsonStructure([
+                'id',
+                'number',
+                'type',
+                'expiration_date',
+                'is_active'
+            ]);
+
+        $expectedExpirationDate = Carbon::parse($response->json()['expiration_date'])->toDateTimeString();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $response->json()['id'],
+            'user_id' => $this->user->id,
+            'number' => $response->json()['number'],
+            'type' => 'TEST',
+            'expiration_date' => $expectedExpirationDate,
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
