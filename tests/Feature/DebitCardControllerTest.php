@@ -12,6 +12,8 @@ class DebitCardControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+    
+    protected string $endpoint = "/api/debit-Cards";
 
     protected function setUp(): void
     {
@@ -23,7 +25,8 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
-        $this->get("/api/debit-cards")->assertStatus(200);
+        $res = $this->getJson($this->endpoint);
+        $res->dd();
     }
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()

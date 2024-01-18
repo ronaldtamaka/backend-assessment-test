@@ -1,3 +1,5 @@
 {
-  "nuxt.isNuxtApp": false
+  "nuxt.isNuxtApp": false,
+  "php.executablePath": "/usr/bin/php",
+  "php.validate.executablePath": "/usr/bin/php"
 }
