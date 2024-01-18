@@ -230,7 +230,6 @@ class DebitCardControllerTest extends TestCase
         $debitCard = DebitCard::factory()->for($this->user)->active()->create();
         $debitCardTransaction = DebitCardTransaction::factory()->for($debitCard)->create();        
       
-
         // Act
         $response = $this->delete("/api/debit-cards/{$debitCard->id}");
 
