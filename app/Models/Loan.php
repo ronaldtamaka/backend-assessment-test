@@ -39,6 +39,11 @@ class Loan extends Model
         'status',
     ];
 
+    protected $casts = [
+        'amount' => 'integer',
+        'outstanding_amount' => 'integer',
+    ];
+
     /**
      * A Loan belongs to a User
      *
@@ -57,5 +62,15 @@ class Loan extends Model
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    /**
+     * A Loan has many Received Payments
+     *
+     * @return HasMany
+     */
+    public function receivedPayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
