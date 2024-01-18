@@ -175,6 +175,21 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
     {
         // put api/debit-cards/{debitCard}
+
+        // Arrange
+        $data = [
+            'is_active' => 'wrong',
+        ];
+        $debitCard = DebitCard::factory()->for($this->user)->active()->create();
+
+        // Act
+        $response = $this->put("/api/debit-cards/{$debitCard->id}", $data);
+       
+        // Assert
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors([
+            'is_active' => 'The is active field must be true or false.',
+        ]);
     }
 
     public function testCustomerCanDeleteADebitCard()
