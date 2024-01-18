@@ -82,6 +82,10 @@ class DebitCardControllerTest extends TestCase
             'expiration_date',
             'is_active',
         ]);
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'type' => 'visa',
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
@@ -103,6 +107,9 @@ class DebitCardControllerTest extends TestCase
             'expiration_date',
             'is_active',
         ]);
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+        ]);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
@@ -118,7 +125,6 @@ class DebitCardControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(403);
-        
     }
 
     public function testCustomerCanActivateADebitCard()
@@ -144,6 +150,10 @@ class DebitCardControllerTest extends TestCase
             'is_active',
         ]);
         $this->assertTrue($response->json('is_active'));
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+            'disabled_at' => null,
+        ]);
     }
 
     public function testCustomerCanDeactivateADebitCard()
@@ -169,6 +179,10 @@ class DebitCardControllerTest extends TestCase
             'is_active',
         ]);
         $this->assertFalse($response->json('is_active'));
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+            'disabled_at' => now(),
+        ]);
 
     }
 
@@ -195,6 +209,16 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanDeleteADebitCard()
     {
         // delete api/debit-cards/{debitCard}
+
+        // Arrange
+        $debitCard = DebitCard::factory()->for($this->user)->active()->create();
+
+        // Act
+        $response = $this->delete("/api/debit-cards/{$debitCard->id}");
+
+        // Assert
+        $response->assertStatus(204);
+        $this->assertNull(DebitCard::find($debitCard->id));
     }
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
