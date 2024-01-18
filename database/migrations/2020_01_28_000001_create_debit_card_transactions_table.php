@@ -15,18 +15,24 @@ class CreateDebitCardTransactionsTable extends Migration
     {
         Schema::create('debit_card_transactions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('debit_card_id');
+            // $table->unsignedInteger('debit_card_id');
+            $table->foreignId('debit_card_id')->references('id')->on('debit_cards');
             $table->integer('amount');
             $table->string('currency_code');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('debit_card_id')
-                ->references('id')
-                ->on('debit_cards')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
+            // $table->foreign('debit_card_id')
+            //     ->references('id')
+            //     ->on('debit_cards')
+            //     ->onUpdate('cascade')
+            //     ->onDelete('restrict');
         });
+
+        // Use the unique method to set a unique constraint name
+        // Schema::table('debit_card_transactions', function (Blueprint $table) {
+        //     $table->unique(['debit_card_id'], 'unique_debit_card_transactionss_debit_card_id');
+        // });
     }
 
     /**
