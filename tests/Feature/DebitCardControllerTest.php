@@ -52,6 +52,19 @@ class DebitCardControllerTest extends TestCase
     {
         // get /debit-cards
 
+        // Arrange
+        $otherCustomer = User::factory()->create();
+        DebitCard::factory()->count(3)->create([
+            'disabled_at' => null,
+            'user_id' => $otherCustomer->id,
+        ]);
+
+        // Act
+        $response = $this->get('/api/debit-cards');
+
+        // Assert
+        $response->assertStatus(200);
+        $this->assertCount(0, $response->json());
     }
 
     public function testCustomerCanCreateADebitCard()
