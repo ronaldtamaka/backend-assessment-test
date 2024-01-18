@@ -26,10 +26,7 @@ class DebitCardControllerTest extends TestCase
         // get /debit-cards
 
         // Arrange
-        DebitCard::factory()->count(3)->create([
-            'disabled_at' => null,
-            'user_id' => $this->user->id,
-        ]);
+        DebitCard::factory()->count(3)->for($this->user)->active()->create();
 
         // Act
         $response = $this->get('/api/debit-cards');
@@ -54,11 +51,8 @@ class DebitCardControllerTest extends TestCase
 
         // Arrange
         $otherCustomer = User::factory()->create();
-        DebitCard::factory()->count(3)->create([
-            'disabled_at' => null,
-            'user_id' => $otherCustomer->id,
-        ]);
-
+        DebitCard::factory()->count(3)->for($otherCustomer)->active()->create();
+       
         // Act
         $response = $this->get('/api/debit-cards');
 
@@ -95,9 +89,7 @@ class DebitCardControllerTest extends TestCase
         // get api/debit-cards/{debitCard}
 
         // Arrange
-        $debitCard = DebitCard::factory()->create([
-            'user_id' => $this->user->id,
-        ]);
+        $debitCard = DebitCard::factory()->for($this->user)->active()->create();
 
         // Act
         $response = $this->get("/api/debit-cards/{$debitCard->id}");
@@ -119,9 +111,7 @@ class DebitCardControllerTest extends TestCase
 
         // Arrange
         $otherCustomer = User::factory()->create();
-        $debitCard = DebitCard::factory()->create([
-            'user_id' => $otherCustomer->id,
-        ]);
+        $debitCard = DebitCard::factory()->for($otherCustomer)->create();
 
         // Act
         $response = $this->get("/api/debit-cards/{$debitCard->id}");
