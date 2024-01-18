@@ -27,7 +27,7 @@ class LoanFactory extends Factory
             'user_id' => fn() => User::factory()->create(),
             'amount' => $this->faker->randomNumber(),
             'terms' => $this->faker->randomNumber(),
-            'outstanding_amount' => $this->faker->randomNumber(),
+            'outstanding_amount' => 0,
             'currency_code' => Loan::CURRENCY_SGD,
             'processed_at' => $this->faker->dateTime,
             'status' => Loan::STATUS_DUE,
