@@ -73,23 +73,14 @@ class LoanService
      * @param  string  $currencyCode
      * @param  string  $receivedAt
      *
-     * @return ReceivedRepayment
+     * @return Loan
      */
-    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
+    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): Loan
     {
         // Transaction
         DB::beginTransaction();
 
-        // get the scheduled repayments for the loan
-        $scheduledRepayments = $loan->scheduledRepayments()
-            ->get();
-
-        // if the amount is greater than the total outstanding amount, throw an exception
-        if ($amount > $scheduledRepayments->sum('outstanding_amount')) {
-            throw new \Exception('Amount is greater than the total outstanding amount');
-        }
-
-        // create received repayment
+        // create received repayment for the loan
         $receivedRepayment = ReceivedRepayment::create([
             'loan_id' => $loan->id,
             'amount' => $amount,
@@ -97,39 +88,43 @@ class LoanService
             'received_at' => $receivedAt,
         ]);
 
-        // get total amount of receivedRepayment
-        $totalReceivedRepayment = $loan->receivedRepayments()->sum('amount');
+        // update scheduled repayments for the loan base on received at
+        $processScheduleRepayment = $loan->scheduledRepayments()
+            ->where(function($query){
+                $query->where('status', ScheduledRepayment::STATUS_DUE)
+                    ->orWhere('status', ScheduledRepayment::STATUS_PARTIAL);
+            })
+            ->where('due_date', '<=', $receivedAt)
+            ->orderBy('due_date', 'desc')
+            ->first();
 
-        // update loan outstanding amount
-        $loan->outstanding_amount = ($loan->amount - $totalReceivedRepayment);
+        // check amount is enough to pay for the last schedule repayment
+        if ($amount >= $processScheduleRepayment->amount) {
+            $processScheduleRepayment->status = ScheduledRepayment::STATUS_REPAID;
+            $processScheduleRepayment->outstanding_amount = 0;
+            $processScheduleRepayment->save();
+
+            $amount -= $processScheduleRepayment->outstanding_amount;
+        } else {
+            $processScheduleRepayment->status = ScheduledRepayment::STATUS_PARTIAL;
+            $processScheduleRepayment->outstanding_amount -= $amount;
+            $processScheduleRepayment->save();
+            $amount = 0;
+        }
+        
+        // check if shcedule is last or not
+        $lastScheduleRepayments = $loan->scheduledRepayments()->where('status', ScheduledRepayment::STATUS_DUE)->orderBy('due_date', 'desc')->first();
+        if ($receivedAt != $lastScheduleRepayments->due_date) {
+            $loan->outstanding_amount = $loan->amount - $amount;
+            $loan->status = Loan::STATUS_DUE;
+        } else {
+            $loan->outstanding_amount = 0;
+            $loan->status = Loan::STATUS_REPAID;
+        }
         $loan->save();
 
-        // update scheduled repayments
-        foreach ($scheduledRepayments as $scheduledRepayment) {
-            if ($amount > 0) {
-                if ($scheduledRepayment->amount > $amount) {
-                    $scheduledRepayment->outstanding_amount = 0;
-                    $scheduledRepayment->status = ScheduledRepayment::STATUS_PARTIAL;
-                    $scheduledRepayment->save();
-                    $amount = 0;
-                } else {
-                    $amount -= $scheduledRepayment->outstanding_amount;
-                    $scheduledRepayment->outstanding_amount = 0;
-                    $scheduledRepayment->status = ScheduledRepayment::STATUS_REPAID;
-                    $scheduledRepayment->save();
-                }
-            } else {
-                // update scheduled repayment status to due if the received repayment is less than the scheduled repayment amount
-                $scheduledRepayment->outstanding_amount =0;
-                $scheduledRepayment->status = ScheduledRepayment::STATUS_DUE;
-                $scheduledRepayment->save();
-            }
-        }
 
-        // commit transaction
-        DB::commit();
-
-        return $receivedRepayment;
+        return $loan;
        
     }
 }

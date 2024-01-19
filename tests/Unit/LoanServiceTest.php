@@ -130,7 +130,6 @@ class LoanServiceTest extends TestCase
             'status' => ScheduledRepayment::STATUS_REPAID,
         ]);
 
-
         // Asserting Second and Scheduled Repayments are still due
         $this->assertDatabaseHas('scheduled_repayments', [
             'id' => $scheduledRepaymentTwo->id,
