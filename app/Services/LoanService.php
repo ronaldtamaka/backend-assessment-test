@@ -71,6 +71,11 @@ class LoanService
         // Determine the actual repayment amount (partial or full)
         $repaymentAmount = min($amount, $nextRepayment->amount);
 
+        // Check if the repayment amount exceeds the outstanding amount
+        if ($repaymentAmount > $nextRepayment->amount) {
+            throw new \Exception('Repayment amount exceeds the outstanding amount.');
+        }
+
         // Mark the scheduled repayment as paid
         $nextRepayment->update([
             'amount' => $repaymentAmount,

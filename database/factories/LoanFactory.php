@@ -32,7 +32,7 @@ class LoanFactory extends Factory
             'currency_code' => $this->faker->currencyCode,
             // 'processed_at' => $this->faker->dateTime,
             'processed_at' => $this->faker->dateTime()->format('Y-m-d H:i:s'),
-            // 'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
+            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
             'terms' => $this->faker->randomElement([3, 6]),
         ];
     }

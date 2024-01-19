@@ -27,6 +27,7 @@ class ScheduledRepaymentFactory extends Factory
             'loan_id' => Loan::factory(),
             'due_date' => $this->faker->dateTimeBetween('now', '+1 year'),
             'amount' => $this->faker->numberBetween(1000, 100000),
+            'currency_code' => 'USD',
         ];
     }
 }
