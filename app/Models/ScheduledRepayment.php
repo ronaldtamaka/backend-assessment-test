@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\ScheduledRepaymentObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,8 +27,13 @@ class ScheduledRepayment extends Model
      *
      * @var array
      */
-    protected $fillable = ['loan_id', 'due_date', 'amount', 'currency_code', 'status', 'updated_at', 'created_at'];
-
+    protected $fillable = [
+        'amount',
+        'outstanding_amount',
+        'currency_code',
+        'due_date',
+        'status'
+    ];
 
     /**
      * A Scheduled Repayment belongs to a Loan
@@ -37,5 +43,11 @@ class ScheduledRepayment extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class, 'loan_id');
+    }
+
+    public static function boot()
+    {
+       parent::boot();
+       self::observe(ScheduledRepaymentObserver::class);
     }
 }

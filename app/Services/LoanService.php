@@ -6,6 +6,7 @@ use App\Models\Loan;
 use App\Models\ReceivedRepayment;
 use App\Models\ScheduledRepayment;
 use App\Models\User;
+use Carbon\Carbon;
 
 class LoanService
 {
@@ -22,27 +23,46 @@ class LoanService
      */
     public function createLoan(User $user, int $amount, string $currencyCode, int $terms, string $processedAt): Loan
     {
-        $loan = Loan::create([
-            'user_id' => $user->id,
-            'amount' => $amount,
-            'currency_code' => $currencyCode,
-            'terms' => $terms,
-            'processed_at' => $processedAt,
-        ]);
 
-        // Create scheduled repayments
-        $installmentAmount = $amount / $terms;
-        $dueDate = \Carbon\Carbon::parse($processedAt)->addMonth();
 
-        for ($i = 0; $i < $terms; $i++) {
-            ScheduledRepayment::create([
-                'loan_id' => $loan->id,
-                'amount' => $installmentAmount,
+        $loan = Loan::create(
+            [
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'terms' => $terms,
+                'outstanding_amount' => $amount,
                 'currency_code' => $currencyCode,
-                'due_date' => $dueDate,
-            ]);
+                'processed_at' => $processedAt,
+                'status' => Loan::STATUS_DUE
+            ]
+        );
 
-            $dueDate->addMonth();
+        $processedDate = Carbon::parse($processedAt);
+
+        $rawRepaymentAmount = $amount / $terms;
+        $repaymentAmount = floor($rawRepaymentAmount);
+        $fraction = 0;
+
+        for ($i=1; $i <= $terms; $i++) {
+
+            $dueDate = $processedDate->addMonth()->format("Y-m-d");
+
+            if ($i === $terms) {
+                $fraction += $rawRepaymentAmount - $repaymentAmount;
+                $repaymentAmount = ceil($fraction + ($amount / $terms));
+            }
+
+            $scheduledRepayment = new ScheduledRepayment(
+                [
+                    'amount' => $repaymentAmount,
+                    'outstanding_amount' => $repaymentAmount,
+                    'currency_code' => $currencyCode,
+                    'due_date' => $dueDate,
+                    'status' => ScheduledRepayment::STATUS_DUE
+                ]
+            );
+
+            $loan->scheduledRepayments()->save($scheduledRepayment);
         }
 
         return $loan;
@@ -60,38 +80,73 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        // Find the next scheduled repayment
-        $nextRepayment = $loan->scheduledRepayments()->where('paid_at', null)->first();
+        $currentScheduledPayment = $loan->scheduledRepayments()
+            ->whereDate('due_date', '=', $receivedAt)
+            ->first();
 
-        if (!$nextRepayment) {
-            // No more scheduled repayments
-            throw new \Exception('No more scheduled repayments for this loan.');
+        foreach($loan->scheduledRepayments as $scheduledPayment) {
+            if($scheduledPayment->id != $currentScheduledPayment->id) {
+                $scheduledPayment->update([
+                    'status' => ($scheduledPayment->status == '') ? ScheduledRepayment::STATUS_DUE : $scheduledPayment->status,
+                ]);
+            }else{
+                $outStandingAmount = $currentScheduledPayment->outstanding_amount;
+                $status = ScheduledRepayment::STATUS_REPAID;
+
+                if ($amount > $scheduledPayment->amount)
+                {
+                     $nextId = $loan->scheduledRepayments->where('id' , '>', $currentScheduledPayment->id)->min('id');
+
+                     $scheduledPayment->update([
+                        'status' => ScheduledRepayment::STATUS_REPAID,
+                        'outstanding_amount' => $outStandingAmount < 0 ? abs($outStandingAmount) : 0
+                    ]);
+
+                    $nextScheduledPayment = $loan->scheduledRepayments->where('id', $nextId)->first();
+
+                    $nextScheduledPayment->update([
+                        'status' => ScheduledRepayment::STATUS_PARTIAL,
+                        'outstanding_amount' => $amount - $nextScheduledPayment->amount
+                    ]);
+
+                }else{
+                     $scheduledPayment->update([
+                        'status' => ScheduledRepayment::STATUS_REPAID,
+                        'outstanding_amount' => $outStandingAmount < 0 ? abs($outStandingAmount) : 0
+                    ]);
+                }
+
+            }
+
         }
 
-        // Determine the actual repayment amount (partial or full)
-        $repaymentAmount = min($amount, $nextRepayment->amount);
-
-        // Check if the repayment amount exceeds the outstanding amount
-        if ($repaymentAmount > $nextRepayment->amount) {
-            throw new \Exception('Repayment amount exceeds the outstanding amount.');
-        }
-
-        // Mark the scheduled repayment as paid
-        $nextRepayment->update([
-            'amount' => $repaymentAmount,
-            'currency_code' => $currencyCode,
-            'paid_at' => $receivedAt,
-        ]);
-
-        // Create a received repayment record
-        $receivedRepayment = ReceivedRepayment::create([
-            'loan_id' => $loan->id,
-            'scheduled_repayment_id' => $nextRepayment->id,
-            'amount' => $repaymentAmount,
+        $receivedRepayment = $loan->receivedRepayments()->create([
+            'amount' => $amount,
             'currency_code' => $currencyCode,
             'received_at' => $receivedAt,
         ]);
 
+        $outStandingAmount = $loan->amount - $amount;
+
+        $countRepaid = $loan->scheduledRepayments()->where('status', ScheduledRepayment::STATUS_REPAID)->count();
+
+        if ($countRepaid == $loan->terms){
+            $loan->update([
+                'outstanding_amount' => 0,
+                'status' => Loan::STATUS_REPAID
+            ]);
+
+        }else{
+            $loan->update([
+                'outstanding_amount' => $outStandingAmount,
+                'status' => Loan::STATUS_DUE
+            ]);
+        }
+
+
+
+
         return $receivedRepayment;
+
     }
 }
