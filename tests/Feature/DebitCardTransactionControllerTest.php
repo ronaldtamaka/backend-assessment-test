@@ -98,11 +98,49 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
     {
         // post /debit-card-transactions
+
+        // Arrange
+        $otherCustomer = User::factory()->create();
+        $otherCustomerDebitCard = DebitCard::factory()->create([
+            'user_id' => $otherCustomer->id
+        ]);
+        $data = [
+            'amount' => 100,
+            'currency_code' => DebitCardTransaction::CURRENCY_IDR,
+            'debit_card_id' => $otherCustomerDebitCard->id,
+        ];
+
+        // Act
+        $response = $this->post('/api/debit-card-transactions', $data);
+
+        // Assert
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('debit_card_transactions', [
+            'debit_card_ids' => $otherCustomerDebitCard->id,
+            'amount' => 100,
+            'currency_codes' => DebitCardTransaction::CURRENCY_IDR,
+        ]);
     }
 
     public function testCustomerCanSeeADebitCardTransaction()
     {
         // get /debit-card-transactions/{debitCardTransaction}
+
+        // Arrange
+        $debitCardTransaction = DebitCardTransaction::factory()->for($this->debitCard)->create();
+
+        // Act
+        $response = $this->get("/api/debit-card-transactions/{$debitCardTransaction->id}");
+
+        // Assert
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'amount',
+            'currency_code',
+        ]);
+        $this->assertDatabaseHas('debit_card_transactions', [
+            'id' => $debitCardTransaction->id,
+        ]);
     }
 
     public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
