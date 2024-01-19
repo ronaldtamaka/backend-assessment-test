@@ -20,7 +20,7 @@ class CreateLoansTable extends Migration
 
             $table->integer('amount');
             $table->integer('terms');
-            $table->integer('outstanding_amount');
+            $table->decimal('outstanding_amount')->nullable();
             $table->string('currency_code');
             $table->date('processed_at');
             $table->string('status');
