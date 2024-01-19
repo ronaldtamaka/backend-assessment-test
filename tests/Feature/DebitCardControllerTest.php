@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\DebitCard;
 use App\Models\User;
+use Carbon\Carbon;
 use \Faker\Generator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
@@ -95,14 +96,14 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
-        $dakeDebitCardsData = [
+        $fakeDebitCardsData = [
             'number' => $this->generator->creditCardNumber,
             'type' => $this->generator->creditCardType,
             'expiration_date' => $this->generator->dateTimeBetween('+1 month', '+3 year'),
             'disabled_at' => $this->generator->boolean ? $this->generator->dateTime : null,
             'user_id' => fn () => $this->user,
         ];
-        $res = $this->postJson($this->endpoint, $dakeDebitCardsData);
+        $res = $this->postJson($this->endpoint, $fakeDebitCardsData);
 
         $res->assertStatus(201);
     }
@@ -111,19 +112,19 @@ class DebitCardControllerTest extends TestCase
     {
         // get api/debit-cards/{debitCard}
         // create a debit cards 
-        $dakeDebitCardsData = $this->user->debitCards()->create([
+        $fakeDebitCardsData = $this->user->debitCards()->create([
             'number' => $this->generator->creditCardNumber,
             'type' => $this->generator->creditCardType,
             'expiration_date' => $this->generator->dateTimeBetween('+1 month', '+3 year'),
             'disabled_at' => $this->generator->boolean ? $this->generator->dateTime : null,
             'user_id' => fn () => $this->user,
         ]);
-        $dCardsID = $dakeDebitCardsData->id;
+        $dCardsID = $fakeDebitCardsData->id;
 
         $res = $this->getJson($this->endpoint . "/" . $dCardsID);
 
         $res->assertOk();
-        $this->assertDatabaseHas("debit_cards", $dakeDebitCardsData->toArray());
+        $this->assertDatabaseHas("debit_cards", $fakeDebitCardsData->toArray());
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
@@ -153,22 +154,41 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanDeactivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
-        // create active d cards first 
+        // create active d cards first
+        $activeDacards = DebitCard::factory()->for($this->user)->active()->create();
+        $this->assertDatabaseHas("debit_cards", $activeDacards->toArray());
+        $this->assertTrue($activeDacards->isActive);
+
+        $res = $this->putJson($this->endpoint . "/" . $activeDacards->id, [
+            "is_active" => false
+        ]);
+        $res->assertOk();
+        $updated = DebitCard::where(["id" => $activeDacards->id])->first();
+        $this->assertFalse($updated->isActive);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
     {
         // put api/debit-cards/{debitCard}
+        $dCards = DebitCard::factory()->for($this->user)->create();
+        $res = $this->putJson($this->endpoint . "/" . $dCards->id, []);
+        $res->assertStatus(422); // validation erorr
     }
 
     public function testCustomerCanDeleteADebitCard()
     {
         // delete api/debit-cards/{debitCard}
+        $dCards = DebitCard::factory()->for($this->user)->create();
+        $res = $this->deleteJson($this->endpoint . "/" . $dCards->id);
+        $res->assertStatus(204);
     }
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
         // delete api/debit-cards/{debitCard}
+        $dCards = DebitCard::factory()->for($this->user)->create();
+        $res = $this->deleteJson($this->endpoint . "/" . $dCards->id);
+        $res->assertStatus(204);
     }
 
     // Extra bonus for extra tests :)
