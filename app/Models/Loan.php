@@ -40,11 +40,34 @@ class Loan extends Model
     ];
 
     /**
+     * The default attributes value
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'status' => self::STATUS_DUE,
+    ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($loan) {
+            if(!$loan->outstanding_amount) {
+                $loan->outstanding_amount = $loan->amount;
+            }
+        });
+    }
+
+    /**
      * A Loan belongs to a User
      *
      * @return BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -54,8 +77,18 @@ class Loan extends Model
      *
      * @return HasMany
      */
-    public function scheduledRepayments()
+    public function scheduledRepayments(): HasMany
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    /**
+     * A Loan has many Received Repayments
+     *
+     * @return HasMany
+     */
+    public function receivedRepayments(): HasMany
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
