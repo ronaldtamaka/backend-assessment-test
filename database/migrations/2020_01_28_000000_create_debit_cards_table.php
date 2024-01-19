@@ -20,6 +20,7 @@ class CreateDebitCardsTable extends Migration
             // $table->unsignedInteger('number');
             $table->string('number');
             $table->string('type');
+            $table->boolean('is_active')->default(true);
             $table->dateTime('expiration_date');
             $table->dateTime('disabled_at')->nullable()->index();
 
