@@ -11,6 +11,7 @@ use Laravel\Passport\Passport;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Illuminate\Support\Str;
 
 class DebitCardControllerTest extends TestCase
 {
@@ -41,7 +42,7 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
-      
+
         $debitCardsCount = $this->faker->numberBetween(1, 10);
         DebitCard::factory()->for($this->user)->count($debitCardsCount)->active()->create();
         DebitCard::factory()->for($this->user)->count($debitCardsCount)->expired()->create();
@@ -75,15 +76,14 @@ class DebitCardControllerTest extends TestCase
         }
     }
 
+
     public function testCustomerCanCreateADebitCard()
     {
-        // post /debit-cards
         $params = ['type' => ''];
         $response = $this->post('/api/debit-cards', $params);
         $response->assertStatus(HttpResponse::HTTP_FOUND);
-        $this->assertDatabaseMissing('debit_cards', ['type' => 'Visa']);
-
-        $params = ['type' => 'Visa'];
+        $this->assertDatabaseMissing('debit_cards', ['type' => 'rahmatputra']);
+        $params = ['type' => 'rahmatputra'];
         $response = $this->post('/api/debit-cards', $params);
         $response->assertStatus(HttpResponse::HTTP_CREATED)
          ->assertJsonStructure([
@@ -93,8 +93,9 @@ class DebitCardControllerTest extends TestCase
                 'expiration_date',
                 'is_active'
             ]);
-        $this->assertDatabaseHas('debit_cards', ['type' => 'Visa']);
+        $this->assertDatabaseHas('debit_cards', ['type' => 'rahmatputra']);
     }
+
 
     public function testCustomerCanSeeASingleDebitCardDetails()
     {

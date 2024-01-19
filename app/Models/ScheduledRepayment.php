@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Observers\ScheduledRepaymentObserver;
+use App\Servers\ScheduledRepaymentServer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,6 +48,6 @@ class ScheduledRepayment extends Model
     public static function boot()
     {
        parent::boot();
-       self::observe(ScheduledRepaymentObserver::class);
+       self::observe(ScheduledRepaymentServer::class);
     }
 }

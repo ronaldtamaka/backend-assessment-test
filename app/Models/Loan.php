@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Observers\LoanObserver;
+use App\Servers\LoanServer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,6 +67,6 @@ class Loan extends Model
     public static function boot()
     {
        parent::boot();
-       self::observe(LoanObserver::class);
+       self::observe(LoanServer::class);
     }
 }
