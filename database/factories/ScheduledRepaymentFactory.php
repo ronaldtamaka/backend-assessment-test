@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ScheduledRepayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Loan;
 
 class ScheduledRepaymentFactory extends Factory
 {
@@ -23,6 +24,10 @@ class ScheduledRepaymentFactory extends Factory
     {
         return [
             // TODO: Complete factory
+            'loan_id' => Loan::factory(),
+            'due_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'amount' => $this->faker->numberBetween(1000, 100000),
+            'currency_code' => 'USD',
         ];
     }
 }

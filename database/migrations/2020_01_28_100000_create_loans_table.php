@@ -15,21 +15,23 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
+            // $table->unsignedInteger('user_id');
+            $table->foreignId('user_id')->references('id')->on('users');
+
             $table->integer('amount');
             $table->integer('terms');
-            $table->integer('outstanding_amount');
+            $table->decimal('outstanding_amount')->nullable()->default(null);
             $table->string('currency_code');
             $table->date('processed_at');
-            $table->string('status');
+            $table->string('status')->default('pending');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
+            // $table->foreign('user_id')
+            //     ->references('id')
+            //     ->on('users')
+            //     ->onUpdate('cascade')
+            //     ->onDelete('restrict');
         });
     }
 
