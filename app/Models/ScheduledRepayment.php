@@ -27,7 +27,10 @@ class ScheduledRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'loan_id',
+        'amount',
+        'due_date',
+        'status',
     ];
 
     /**
