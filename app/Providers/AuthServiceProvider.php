@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
-use App\Polocies\DebitCardPolicy;
+use App\Policies\DebitCardPolicy;
 use App\Polocies\DebitCardTransactionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;
