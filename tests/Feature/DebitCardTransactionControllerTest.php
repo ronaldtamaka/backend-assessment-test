@@ -28,7 +28,6 @@ class DebitCardTransactionControllerTest extends TestCase
         $this->newUser = User::factory()->create();
         $this->newUserDebitCard = DebitCard::factory()->for($this->newUser)->create();
 
-        // Create transactions for both the current user's and the new user's debit cards
         $this->currentUserDebitCardTransaction = DebitCardTransaction::factory()
             ->for($this->debitCard)
             ->create();

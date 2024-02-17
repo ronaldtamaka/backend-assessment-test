@@ -46,7 +46,7 @@ class DebitCardControllerTest extends TestCase
         $otherUser = User::factory()->create();
         DebitCard::factory()->count(3)->for($otherUser)->create();
         $response = $this->get('/api/debit-cards');
-        $response->assertStatus(200)->assertOk();
+        $response->assertStatus(200)->assertOk(); 
     }
 
     public function testCustomerCanCreateADebitCard()
@@ -86,7 +86,6 @@ class DebitCardControllerTest extends TestCase
      
         $debitCard = DebitCard::factory()->create();
 
-        // Attempt to retrieve details for the existing debit card
         $response = $this->get('/api/debit-cards/' . $debitCard->id);
         $response->assertStatus(403);
     }

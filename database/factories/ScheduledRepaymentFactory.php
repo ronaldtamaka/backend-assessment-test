@@ -4,6 +4,8 @@ namespace Database\Factories;
 
 use App\Models\ScheduledRepayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Loan;
+use App\Models\DebitCardTransaction;
 
 class ScheduledRepaymentFactory extends Factory
 {
@@ -21,8 +23,14 @@ class ScheduledRepaymentFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            // TODO: Complete factory
-        ];
+        
+            return [
+                'loan_id' => fn () => Loan::factory()->create(),
+                'amount' => $this->faker->randomNumber(),
+                'currency_code' => $this->faker->randomElement(DebitCardTransaction::CURRENCIES),
+                'due_date' => $this->faker->dateTimeBetween('+1 week', '+3 year'),
+                'status' => ScheduledRepayment::STATUS_DUE,
+            ];
+        
     }
 }

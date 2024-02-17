@@ -70,13 +70,14 @@ class LoanService
      *
      * @return ReceivedRepayment
      */
-    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
+    public function repayLoan(ScheduledRepayment $scheduledRepayment, Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
         $repaymentAmount = $amount;
 
         // Received Repayment
         $receivePayment = ReceivedRepayment::create([
             'loan_id' => $loan->id,
+            'scheduled_repayment_id' =>1,
             'amount' => $amount,
             'currency_code' => $currencyCode,
             'received_at' => $receivedAt,

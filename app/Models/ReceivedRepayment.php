@@ -30,6 +30,7 @@ class ReceivedRepayment extends Model
         'loan_id',
         'amount',
         'currency_code',
+        'scheduled_repayment_id',
         'received_at',
     ];
 
@@ -41,5 +42,9 @@ class ReceivedRepayment extends Model
     public function loan() : BelongsTo
     {
         return $this->belongsTo(Loan::class, 'loan_id');
+    }
+    public function scheduledRepayment()
+    {
+        return $this->belongsTo(ScheduledRepayment::class, 'scheduled_repayment_id');
     }
 }
