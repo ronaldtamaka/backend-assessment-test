@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
@@ -25,20 +26,46 @@ class DebitCardTransactionControllerTest extends TestCase
         Passport::actingAs($this->user);
     }
 
-    // public function testCustomerCanSeeAListOfDebitCardTransactions()
-    // {
-    //     // get /debit-card-transactions
-    // }
+    /**
+     *
+     */
+    public function testCustomerCanSeeAListOfDebitCardTransactions()
+    {
+        DebitCardTransaction::factory()->create(['debit_card_id' => $this->debitCard->id]);
 
-    // public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
-    // {
-    //     // get /debit-card-transactions
-    // }
+        $response = $this->getJson('api/debit-card-transactions?debit_card_id=' . $this->debitCard->id);
 
-    // public function testCustomerCanCreateADebitCardTransaction()
-    // {
-    //     // post /debit-card-transactions
-    // }
+        $response->assertStatus(200);
+    }
+
+    /**
+     *
+     */
+    public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
+    {
+        $user = User::create([
+            'name' => 'fail',
+            'email' => 'fail@mail.com',
+            'password' => bcrypt('password')
+        ]);
+
+        $response = $this->actingAs($user, 'api')
+            ->get('api/debit-card-transactions?debit_card_id=' . $this->debitCard->id);
+
+        $responseJson = json_decode($response->content(), true);
+        $this->assertEmpty(
+            $responseJson,
+            'customer cant see a list of debit card transactions of other customer'
+        );
+    }
+
+    /**
+     *
+     */
+    public function testCustomerCanCreateADebitCardTransaction()
+    {
+        // post /debit-card-transactions
+    }
 
     // public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
     // {
