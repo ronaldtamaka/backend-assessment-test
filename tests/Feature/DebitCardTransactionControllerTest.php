@@ -64,23 +64,77 @@ class DebitCardTransactionControllerTest extends TestCase
      */
     public function testCustomerCanCreateADebitCardTransaction()
     {
-        // post /debit-card-transactions
+        $debitCard = DebitCard::factory()->create(['user_id' => $this->user->id]);
+
+        $response = $this->postJson('/api/debit-card-transactions', [
+            'debit_card_id' => $debitCard->id,
+            'amount' => 10000,
+            'currency_code'  => 'IDR'
+        ]);
+
+        $response->assertStatus(201);
+
+        $response->assertJson([
+            'amount' => 10000,
+            'currency_code' => 'IDR'
+        ]);
     }
 
-    // public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
-    // {
-    //     // post /debit-card-transactions
-    // }
+    /**
+     *
+     */
+    public function testCustomerCannotCreateADebitCardTransactionToOtherCustomerDebitCard()
+    {
+        $debitCard = DebitCard::factory()->create(['user_id' => $this->user->id]);
 
-    // public function testCustomerCanSeeADebitCardTransaction()
-    // {
-    //     // get /debit-card-transactions/{debitCardTransaction}
-    // }
+        $user = User::create([
+            'name' => 'fail',
+            'email' => 'fail@mail.com',
+            'password' => bcrypt('password')
+        ]);
 
-    // public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
-    // {
-    //     // get /debit-card-transactions/{debitCardTransaction}
-    // }
+        $response = $this->actingAs($user, 'api')
+            ->postJson('/api/debit-card-transactions', [
+                'debit_card_id' => $debitCard->id,
+                'amount' => 10000,
+                'currency_code'  => 'IDR'
+            ]);
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     *
+     */
+    public function testCustomerCanSeeADebitCardTransaction()
+    {
+        $debitCradTransaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id
+        ]);
+
+        $response = $this->getJson("/api/debit-card-transactions/{$debitCradTransaction->id}");
+        $response->assertStatus(200);
+    }
+
+    /**
+     *
+     */
+    public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
+    {
+        $debitCardTransaction = DebitCardTransaction::factory()->create(['debit_card_id' => $this->debitCard->id]);
+
+        $debitCardTransaction->dump();
+        $user = User::create([
+            'name' => 'fail',
+            'email' => 'fail@mail.com',
+            'password' => bcrypt('password')
+        ]);
+
+        $response = $this->actingAs($user, 'api')
+            ->getJson("/api/debit-card-transactions/{$debitCardTransaction->id}");
+
+        $response->assertStatus(403);
+    }
 
     // Extra bonus for extra tests :)
 }
