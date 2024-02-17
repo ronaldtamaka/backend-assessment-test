@@ -6,6 +6,8 @@ use App\Models\DebitCard;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+
+
 class DebitCardFactory extends Factory
 {
     /**
@@ -53,5 +55,7 @@ class DebitCardFactory extends Factory
         return $this->state(fn () => [
             'disabled_at' => $this->faker->dateTime,
         ]);
+
+
     }
 }

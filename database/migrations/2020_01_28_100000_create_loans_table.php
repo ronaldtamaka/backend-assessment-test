@@ -15,13 +15,13 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->integer('amount');
             $table->integer('terms');
-            $table->integer('outstanding_amount');
+            $table->unsignedBigInteger('outstanding_amount')->default(0);
             $table->string('currency_code');
             $table->date('processed_at');
-            $table->string('status');
+            $table->string('status')->default('due');
             $table->timestamps();
             $table->softDeletes();
 

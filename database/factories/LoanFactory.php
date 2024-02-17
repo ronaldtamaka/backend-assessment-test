@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Loan;
+use App\Models\DebitCardTransaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class LoanFactory extends Factory
@@ -21,8 +23,18 @@ class LoanFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            // TODO: Complete factory
-        ];
+      
+            return [
+                'user_id' => fn () => User::factory()->create(),
+                'terms' => $this->faker->randomDigitNotNull,
+                'amount' => $this->faker->randomNumber(),
+                'currency_code' => $this->faker->randomElement(DebitCardTransaction::CURRENCIES),
+                'processed_at' => $this->faker->dateTimeInInterval('-1 days', '+6 week'),
+                'status' => $this->faker->randomElement([
+                    Loan::STATUS_DUE,
+                    Loan::STATUS_REPAID,
+                ]),
+            ];
+        
     }
 }
