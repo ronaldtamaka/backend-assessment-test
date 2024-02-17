@@ -16,7 +16,11 @@ class ReceivedRepayment extends Model
      * @var string
      */
     protected $table = 'received_repayments';
+    public const STATUS_DUE = 'due';
+    public const STATUS_REPAID = 'repaid';
 
+    public const CURRENCY_SGD = 'SGD';
+    public const CURRENCY_VND = 'VND';
     /**
      * The attributes that are mass assignable.
      *
