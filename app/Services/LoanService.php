@@ -63,7 +63,75 @@ class LoanService
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
     {
-        //
+        // store received payment
+        $received = ReceivedRepayment::create([
+            'loan_id' => $loan->id,
+            'amount' => $amount,
+            'currency_code' => $currencyCode,
+            'received_at' => $receivedAt,
+        ]);
+
+        $currencyAmount = $this->parseAmountToLoanCurrency($amount, $currencyCode, $loan->currency_code);
+
+        // get total repaid amount
+        $repaidAmount = $loan
+            ->scheduledRepayments()
+            ->where('status', ScheduledRepayment::STATUS_REPAID)
+            ->sum('amount');
+
+        // update loan outstanding and status
+        $loan
+            ->forceFill([
+                'outstanding_amount' => $loanOutstanding = $loan->outstanding_amount - ($repaidAmount + $currencyAmount),
+                'status' => $loanOutstanding === 0 ? Loan::STATUS_REPAID : Loan::STATUS_DUE,
+            ])
+            ->save();
+
+        // get unpaid schedule repayment
+        $unpaidRepayments = $loan
+            ->scheduledRepayments()
+            ->where('status', '<>', ScheduledRepayment::STATUS_REPAID)
+            ->get();
+
+        foreach ($unpaidRepayments as $unpaidRepayment) {
+            // skip the process if amount is 0
+            if ($currencyAmount === 0) {
+                continue;
+            }
+
+            $repayment = min($unpaidRepayment->amount, $unpaidRepayment->outstanding_amount, $currencyAmount);
+            $currencyAmount -= $repayment;
+
+            // update schedule repayment
+            $unpaidRepayment
+                ->forceFill([
+                    'outstanding_amount' => $repaymentOutstanding = $unpaidRepayment->outstanding_amount - $repayment,
+                    'status' => $repaymentOutstanding === 0 ? ScheduledRepayment::STATUS_REPAID : ScheduledRepayment::STATUS_PARTIAL,
+                ])
+                ->save();
+        }
+
+        return $received;
+    }
+
+    /**
+     * Parse amount to loan currency
+     *
+     * @param  int  $amount
+     * @param  string  $from
+     * @param  string  $to
+     * @return int
+     */
+    protected function parseAmountToLoanCurrency(int $amount, string $from, string $to): int
+    {
+        if ($from === $to) {
+            return $amount;
+        }
+
+        // assume the rate is 1
+        $rate = 1;
+
+        return $amount * $rate;
     }
 
     /**
