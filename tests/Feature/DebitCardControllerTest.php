@@ -6,6 +6,7 @@ use App\Models\DebitCard;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -103,7 +104,23 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCanDeactivateADebitCard()
     {
-        // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()
+            ->active()
+            ->for($this->user)
+            ->create();
+
+        $response = $this->putJson("api/debit-cards/{$debitCard->id}", ['is_active' => false]);
+        $response
+            ->assertOk()
+            ->assertJson(['number' => $debitCard->number, 'type' => $debitCard->type, 'is_active' => false])
+            ->assertJsonStructure(['id', 'number', 'type', 'expiration_date', 'is_active']);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'disabled_at' => Carbon::now(),
+            'type' => $debitCard->type,
+            'number' => $debitCard->number,
+        ]);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
