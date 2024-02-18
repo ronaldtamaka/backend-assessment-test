@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -154,8 +155,13 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
-        // delete api/debit-cards/{debitCard}
-    }
+        $debitCard = DebitCard::factory()
+            ->active()
+            ->for($this->user)
+            ->has(DebitCardTransaction::factory()->count(5), 'debitCardTransactions')
+            ->create();
 
-    // Extra bonus for extra tests :)
+        $response = $this->deleteJson("api/debit-cards/{$debitCard->id}");
+        $response->assertForbidden();
+    }
 }
