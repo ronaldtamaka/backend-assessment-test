@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\DebitCard;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
@@ -74,7 +75,9 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->withoutExceptionHandling()->getJson('api/debit-cards/1');
     }
 
     public function testCustomerCanActivateADebitCard()
