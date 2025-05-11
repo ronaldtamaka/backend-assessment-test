@@ -15,6 +15,11 @@ class Loan extends Model
     public const CURRENCY_SGD = 'SGD';
     public const CURRENCY_VND = 'VND';
 
+    public const CURRENCIES = [
+        self::CURRENCY_SGD,
+        self::CURRENCY_VND,
+    ];
+
     use HasFactory;
 
     /**
@@ -57,5 +62,51 @@ class Loan extends Model
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
+    }
+
+    /**
+     * Synchronize scheduled repayment with given amount.
+     *
+     * @param  int  $amount
+     * @return void
+     */
+    public function syncScheduledRepaymentsWithAmount(int $amount)
+    {
+        $unpaidPayments = $this
+            ->scheduledRepayments()
+            ->where('status', '<>', ScheduledRepayment::STATUS_REPAID)
+            ->get();
+
+        foreach ($unpaidPayments as $unpaidPayment) {
+            if ($amount === 0) {
+                break;
+            }
+
+            $repayment = min($unpaidPayment->outstanding_amount, $amount);
+            $amount -= $repayment;
+            $outstanding = $unpaidPayment->outstanding_amount - $repayment;
+
+            $unpaidPayment->forceFill(['outstanding_amount' => $outstanding])->save();
+        }
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    public static function booted()
+    {
+        static::creating(function (Loan  $loan) {
+            $loan->outstanding_amount = $loan->amount;
+            $loan->status = static::STATUS_DUE;
+        });
+
+        static::updating(function (Loan $loan) {
+            $loan->status = $loan->outstanding_amount === 0 ? static::STATUS_REPAID : static::STATUS_DUE;
+        });
     }
 }

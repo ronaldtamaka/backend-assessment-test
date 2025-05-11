@@ -27,7 +27,11 @@ class ScheduledRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'amount',
+        'outstanding_amount',
+        'currency_code',
+        'due_date',
+        'status',
     ];
 
     /**
@@ -38,5 +42,29 @@ class ScheduledRepayment extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class, 'loan_id');
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    public static function booted()
+    {
+        static::creating(function (ScheduledRepayment  $scheduled) {
+            $scheduled->status = $scheduled->isDirty('status') ? $scheduled->status : static::STATUS_DUE;
+
+            if ($scheduled->status === static::STATUS_DUE) {
+                $scheduled->outstanding_amount = $scheduled->amount;
+            } elseif ($scheduled->status === static::STATUS_REPAID) {
+                $scheduled->outstanding_amount = 0;
+            }
+        });
+
+        static::updating(function (ScheduledRepayment  $scheduled) {
+            if ($scheduled->outstanding_amount === 0) {
+                $scheduled->status = static::STATUS_REPAID;
+            } elseif ($scheduled->outstanding_amount != $scheduled->amount) {
+                $scheduled->status = static::STATUS_PARTIAL;
+            }
+        });
     }
 }
