@@ -23,7 +23,10 @@ class ReceivedRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'loan_id',
+        'amount',
+        'currency_code',
+        'received_at',
     ];
 
     /**
@@ -35,4 +38,5 @@ class ReceivedRepayment extends Model
     {
         return $this->belongsTo(Loan::class, 'loan_id');
     }
+    
 }

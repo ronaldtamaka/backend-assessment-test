@@ -21,7 +21,9 @@ class CreateReceivedRepaymentsTable extends Migration
 
             $table->timestamps();
             $table->softDeletes();
-
+            $table->integer('amount');
+            $table->string('currency_code');
+            $table->date('received_at');
             $table->foreign('loan_id')
                 ->references('id')
                 ->on('loans')

@@ -58,4 +58,16 @@ class Loan extends Model
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
     }
+
+    public static function booted()
+    {
+        static::creating(function (Loan  $loan) {
+            $loan->outstanding_amount = $loan->amount;
+            $loan->status = static::STATUS_DUE;
+        });
+
+        static::updating(function (Loan $loan) {
+            $loan->status = $loan->outstanding_amount === 0 ? static::STATUS_REPAID : static::STATUS_DUE;
+        });
+    }
 }
