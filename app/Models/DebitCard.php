@@ -51,6 +51,7 @@ class DebitCard extends Authenticatable
      */
     protected $casts = [
         'disabled_at' => 'datetime:Y-m-d H:i:s',
+        'expiration_date' => 'datetime',
     ];
 
 

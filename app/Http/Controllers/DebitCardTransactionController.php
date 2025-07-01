@@ -26,14 +26,18 @@ class DebitCardTransactionController extends BaseController
      */
     public function index(DebitCardTransactionShowIndexRequest $request): JsonResponse
     {
-        $debitCard = DebitCard::find($request->input('debit_card_id'));
+        $user = auth()->user();
 
-        $debitCardTransactions = $debitCard
-            ->debitCardTransactions()
-            ->get();
+        $transactions = DebitCardTransaction::whereHas('debitCard', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->get();
 
-        return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
+        return DebitCardTransactionResource::collection($transactions)->response();
+
     }
+
+
+
 
     /**
      * Create a new debit card transaction
@@ -64,6 +68,13 @@ class DebitCardTransactionController extends BaseController
      */
     public function show(DebitCardTransactionShowRequest $request, DebitCardTransaction $debitCardTransaction)
     {
-        return response()->json(new DebitCardTransactionResource($debitCardTransaction), HttpResponse::HTTP_OK);
+        return (new DebitCardTransactionResource($debitCardTransaction))
+                ->response()
+                ->setStatusCode(HttpResponse::HTTP_OK);
+
     }
+
+
+
+
 }

@@ -21,8 +21,16 @@ class LoanFactory extends Factory
      */
     public function definition(): array
     {
+         $amount = 5000;
+
         return [
-            // TODO: Complete factory
+            'user_id' => \App\Models\User::factory(),
+            'terms' => 3,
+            'amount' => $amount,
+            'outstanding_amount' => $amount,
+            'currency_code' => Loan::CURRENCY_VND,
+            'processed_at' => '2020-01-20',
+            'status' => Loan::STATUS_DUE,
         ];
     }
 }

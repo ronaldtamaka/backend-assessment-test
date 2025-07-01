@@ -15,10 +15,9 @@ class DebitCardTransactionShowIndexRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $debitCard = DebitCard::find($this->input('debit_card_id'));
-
-        return $debitCard && $this->user()->can('view', $debitCard);
+        return true;
     }
+
 
     /**
      * Get the validation rules that apply to the request.
@@ -27,8 +26,7 @@ class DebitCardTransactionShowIndexRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'debit_card_id' => 'required|integer|exists:debit_cards,id',
-        ];
+        return []; // gak perlu debit_card_id di index
     }
+
 }

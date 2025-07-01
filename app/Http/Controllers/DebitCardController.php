@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\DebitCardCreateRequest;
 use App\Http\Requests\DebitCardDestroyRequest;
 use App\Http\Requests\DebitCardShowRequest;
@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DebitCardController extends BaseController
 {
+    use AuthorizesRequests;
     /**
      * Get active debit cards list
      *
@@ -22,14 +23,16 @@ class DebitCardController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index(DebitCardShowRequest $request): JsonResponse
+  public function index(DebitCardShowRequest $request): JsonResponse
     {
         $debitCards = $request->user()
             ->debitCards()
             ->active()
             ->get();
 
-        return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => DebitCardResource::collection($debitCards),
+        ]);
     }
 
     /**
@@ -46,8 +49,8 @@ class DebitCardController extends BaseController
             'number' => rand(1000000000000000, 9999999999999999),
             'expiration_date' => Carbon::now()->addYear(),
         ]);
-
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_CREATED);
+        return new DebitCardResource($debitCard);
+        // return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_CREATED);
     }
 
     /**
@@ -60,8 +63,11 @@ class DebitCardController extends BaseController
      */
     public function show(DebitCardShowRequest $request, DebitCard $debitCard)
     {
+        $this->authorize('view', $debitCard);
+
         return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
     }
+
 
     /**
      * Update a debit card
@@ -73,6 +79,13 @@ class DebitCardController extends BaseController
      */
     public function update(DebitCardUpdateRequest $request, DebitCard $debitCard)
     {
+        // ❗ Cek apakah user mau mengaktifkan kartu yang sudah expired
+        if ($request->input('is_active') && $debitCard->expiration_date->isPast()) {
+            return response()->json([
+                'message' => 'Cannot activate expired debit card.'
+            ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY); // 422
+        }
+
         $debitCard->update([
             'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
         ]);
@@ -91,8 +104,10 @@ class DebitCardController extends BaseController
      */
     public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
     {
+        $this->authorize('delete', $debitCard);
+
         $debitCard->delete();
 
-        return response()->json([], HttpResponse::HTTP_NO_CONTENT);
+        return response()->noContent(); // HTTP 204
     }
 }

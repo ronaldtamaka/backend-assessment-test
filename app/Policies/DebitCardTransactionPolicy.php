@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Polocies;
+namespace App\Policies;
 
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-/**
- * Class DebitCardTransactionPolicy
- */
 class DebitCardTransactionPolicy
 {
     use HandlesAuthorization;
 
     /**
-     * View a Debit Transaction
-     *
-     * @param User           $user
-     * @param DebitCardTransaction $debitCardTransaction
-     *
-     * @return bool
+     * Allow listing all debit card transactions belonging to current user.
+     */
+    public function viewAny(User $user): bool
+    {
+        return true; // authorize listing own transactions
+    }
+
+    /**
+     * View a specific debit card transaction.
      */
     public function view(User $user, DebitCardTransaction $debitCardTransaction): bool
     {
@@ -28,12 +28,7 @@ class DebitCardTransactionPolicy
     }
 
     /**
-     * Create a Debit card transaction
-     *
-     * @param User      $user
-     * @param DebitCard $debitCard
-     *
-     * @return bool
+     * Create a new debit card transaction.
      */
     public function create(User $user, DebitCard $debitCard): bool
     {
