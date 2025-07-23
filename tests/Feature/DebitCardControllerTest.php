@@ -187,4 +187,19 @@ class DebitCardControllerTest extends TestCase
             ->assertJsonValidationErrors('number');
     }
 
+    public function testCannotCreateDebitCardWithAnExpiredDate()
+    {
+        // post /debit-cards
+        $cardData = [
+            'type' => 'visa',
+            'number' => '9876543210987654',
+            'expiration_date' =>  \Carbon\Carbon::now()->subDay()->format('Y-m-d'),
+        ];
+
+        $response = $this->postJson('/api/debit-cards', $cardData);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('expiration_date');
+    }
+
 }
