@@ -18,7 +18,7 @@ class CreateReceivedRepaymentsTable extends Migration
             $table->unsignedBigInteger('loan_id');
 
             // TODO: Add missing columns here
-            $table->decimal('amount', 15, 2);
+            $table->integer('amount');
             $table->string('currency_code');
             $table->date('received_at');
 
