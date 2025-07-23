@@ -48,6 +48,19 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanCreateADebitCard()
     {
         // post /debit-cards
+        $cardData = [
+            'type' => 'visa',
+            'number' => '1234567812345678',
+            'expiration_date' => \Carbon\Carbon::now()->addYear()->format('Y-m-d'),
+        ];
+
+        $response = $this->postJson('/api/debit-cards', $cardData);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'number' => $cardData['number'],
+        ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
