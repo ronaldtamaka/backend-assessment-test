@@ -172,4 +172,19 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
+    public function testCannotCreateDebitCardWithADuplicateNumber()
+    {
+        $existingCard = DebitCard::factory()->create(['user_id' => $this->user->id]);
+        $newData = [
+            'type' => 'mastercard',
+            'number' => $existingCard->number, 
+            'expiration_date' => \Carbon\Carbon::now()->addYears(2)->format('Y-m-d'),
+        ];
+
+        $response = $this->postJson('/api/debit-cards', $newData);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('number');
+    }
+
 }
