@@ -35,29 +35,26 @@ class LoanService
                 'status' => Loan::STATUS_DUE,
             ]);
 
-            $baseRepaymentAmount = intdiv($amount, $terms);
-            $remainder = $amount % $terms;
+            $baseInstallment = intdiv($loan->amount, $loan->terms);
+            $remainder = $loan->amount % $loan->terms;
 
-            for ($i = 1; $i <= $terms; $i++) {
-                $repaymentAmount = $baseRepaymentAmount;
-                if ($i === $terms) {
-                    $repaymentAmount += $remainder; // Add remainder to the last repayment
-                }
+            for ($i = 0; $i < $loan->terms; $i++) {
+                $amount = $baseInstallment + ($i < $remainder ? 1 : 0);
 
-                $dueDate = Carbon::parse($processedAt)->addMonths($i);
-
-                $loan->scheduledRepayments()->create([
-                    'amount' => $repaymentAmount,
-                    'outstanding_amount' => $repaymentAmount,
-                    'currency_code' => $currencyCode,
-                    'due_date' => $dueDate->toDateString(),
+                ScheduledRepayment::create([
+                    'loan_id' => $loan->id,
+                    'amount' => $amount,
+                    'outstanding_amount' => $amount,
+                    'currency_code' => $loan->currency_code,
+                    'due_date' => Carbon::parse($loan->processed_at)->addMonths($i + 1),
                     'status' => ScheduledRepayment::STATUS_DUE,
                 ]);
             }
 
-            return $loan;
+            return $loan->fresh();
         });
     }
+
 
     /**
      * Repay Scheduled Repayments for a Loan
@@ -69,46 +66,51 @@ class LoanService
      *
      * @return ReceivedRepayment
      */
-    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
+    // app/Services/LoanService.php
+    public function repayLoan(Loan $loan, int $receivedRepayment, string $currencyCode, string $receivedAt): Loan
     {
         return DB::transaction(function () use ($loan, $receivedRepayment, $currencyCode, $receivedAt) {
-
             $loan->receivedRepayments()->create([
                 'amount' => $receivedRepayment,
                 'currency_code' => $currencyCode,
                 'received_at' => $receivedAt,
             ]);
 
-            $loan->outstanding_amount -= $receivedRepayment;
-
+            $paymentLeft = $receivedRepayment;
             $repaymentsToSettle = $loan->scheduledRepayments()
                 ->whereIn('status', [ScheduledRepayment::STATUS_DUE, ScheduledRepayment::STATUS_PARTIAL])
+                ->orderBy('due_date')
                 ->get();
-
-            $paymentLeft = $receivedRepayment;
 
             foreach ($repaymentsToSettle as $repayment) {
                 if ($paymentLeft <= 0) break;
 
                 $amountToPay = min($paymentLeft, $repayment->outstanding_amount);
-                
                 $repayment->outstanding_amount -= $amountToPay;
                 $paymentLeft -= $amountToPay;
 
-                if ($repayment->outstanding_amount == 0) {
-                    $repayment->status = ScheduledRepayment::STATUS_REPAID;
-                } else {
-                    $repayment->status = ScheduledRepayment::STATUS_PARTIAL;
-                }
+                $repayment->status = $repayment->outstanding_amount <= 0
+                    ? ScheduledRepayment::STATUS_REPAID
+                    : ScheduledRepayment::STATUS_PARTIAL;
                 $repayment->save();
             }
 
-            if ($loan->outstanding_amount <= 0) {
-                $loan->status = Loan::STATUS_REPAID;
+            $loan->outstanding_amount -= $receivedRepayment;
+            if ($loan->outstanding_amount < 0) {
+                $loan->outstanding_amount = 0;
             }
+
+            if (
+                $loan->outstanding_amount === 0 ||
+                $loan->scheduledRepayments()->where('status', '!=', ScheduledRepayment::STATUS_REPAID)->count() === 0
+            ) {
+                $loan->status = Loan::STATUS_REPAID;
+                $loan->outstanding_amount = 0;
+            }
+
             $loan->save();
 
-            return $loan->fresh(); 
+            return $loan->fresh();
         });
     }
 }
