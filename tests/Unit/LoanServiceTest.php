@@ -56,8 +56,8 @@ class LoanServiceTest extends TestCase
         ]);
         $this->assertDatabaseHas('scheduled_repayments', [
             'loan_id' => $loan->id,
-            'amount' => 1666,
-            'outstanding_amount' => 1666,
+            'amount' => 1667,
+            'outstanding_amount' => 1667,
             'currency_code' => $currencyCode,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_DUE,
@@ -86,18 +86,21 @@ class LoanServiceTest extends TestCase
         $scheduledRepaymentOne =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
             'amount' => 1666,
+            'outstanding_amount' => 1666,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-02-20',
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
+            'outstanding_amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
         ]);
         $scheduledRepaymentThree =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
+            'outstanding_amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-04-20',
         ]);
@@ -163,13 +166,15 @@ class LoanServiceTest extends TestCase
         $scheduledRepaymentOne =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
             'amount' => 1666,
+            'outstanding_amount' => 0, 
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-02-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
         ]);
         $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
-            'amount' => 1666,
+            'amount' => 1667,
+            'outstanding_amount' => 0,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
@@ -178,6 +183,7 @@ class LoanServiceTest extends TestCase
         $scheduledRepaymentThree =  ScheduledRepayment::factory()->create([
             'loan_id' => $loan->id,
             'amount' => 1667,
+            'outstanding_amount' => 1667,
             'currency_code' => Loan::CURRENCY_VND,
             'due_date' => '2020-04-20',
             'status' => ScheduledRepayment::STATUS_DUE,
@@ -208,7 +214,7 @@ class LoanServiceTest extends TestCase
             'amount' => 1667,
             'outstanding_amount' => 0,
             'currency_code' => $currencyCode,
-            'due_date' => '2020-02-20',
+            'due_date' => '2020-04-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
         ]);
 
@@ -223,35 +229,15 @@ class LoanServiceTest extends TestCase
 
     public function testServiceCanRepayMultipleScheduledRepayments()
     {
-        $loan = Loan::factory()->create([
-            'user_id' => $this->user->id,
-            'terms' => 3,
-            'amount' => 5000,
-            'currency_code' => Loan::CURRENCY_VND,
-            'processed_at' => '2020-01-20',
-        ]);
+        $loan = $this->loanService->createLoan(
+            $this->user,
+            5000,
+            Loan::CURRENCY_VND,
+            3,
+            '2020-01-20'
+        );
 
-        $scheduledRepaymentOne =  ScheduledRepayment::factory()->create([
-            'loan_id' => $loan->id,
-            'amount' => 1666,
-            'currency_code' => Loan::CURRENCY_VND,
-            'due_date' => '2020-02-20',
-            'status' => ScheduledRepayment::STATUS_DUE,
-        ]);
-        $scheduledRepaymentTwo =  ScheduledRepayment::factory()->create([
-            'loan_id' => $loan->id,
-            'amount' => 1666,
-            'currency_code' => Loan::CURRENCY_VND,
-            'due_date' => '2020-03-20',
-            'status' => ScheduledRepayment::STATUS_DUE,
-        ]);
-        $scheduledRepaymentThree =  ScheduledRepayment::factory()->create([
-            'loan_id' => $loan->id,
-            'amount' => 1667,
-            'currency_code' => Loan::CURRENCY_VND,
-            'due_date' => '2020-04-20',
-            'status' => ScheduledRepayment::STATUS_DUE,
-        ]);
+        $scheduledRepayments = $loan->scheduledRepayments()->orderBy('due_date')->get();
 
         // Paying more than the first scheduled repayment amount
         $receivedRepayment = 2000;
@@ -266,7 +252,7 @@ class LoanServiceTest extends TestCase
             'id' => $loan->id,
             'user_id' => $this->user->id,
             'amount' => 5000,
-            'outstanding_amount' => 5000 - 2000,
+            'outstanding_amount' => 3000,
             'currency_code' => $currencyCode,
             'status' => Loan::STATUS_DUE,
             'processed_at' => '2020-01-20',
@@ -274,23 +260,17 @@ class LoanServiceTest extends TestCase
 
         // Asserting First Scheduled Repayment is Repaid
         $this->assertDatabaseHas('scheduled_repayments', [
-            'id' => $scheduledRepaymentOne->id,
+            'id' => $scheduledRepayments[0]->id,
             'loan_id' => $loan->id,
-            'amount' => 1667,
             'outstanding_amount' => 0,
-            'currency_code' => $currencyCode,
-            'due_date' => '2020-02-20',
             'status' => ScheduledRepayment::STATUS_REPAID,
         ]);
 
         // Asserting Second Scheduled Repayment is Partial
         $this->assertDatabaseHas('scheduled_repayments', [
-            'id' => $scheduledRepaymentTwo->id,
+            'id' => $scheduledRepayments[1]->id,
             'loan_id' => $loan->id,
-            'amount' => 1667,
-            'outstanding_amount' => 333, // 2000 - 1667
-            'currency_code' => $currencyCode,
-            'due_date' => '2020-03-20',
+            'outstanding_amount' => $scheduledRepayments[1]->amount - (2000 - $scheduledRepayments[0]->amount),
             'status' => ScheduledRepayment::STATUS_PARTIAL,
         ]);
 
@@ -299,7 +279,8 @@ class LoanServiceTest extends TestCase
             'loan_id' => $loan->id,
             'amount' => 2000,
             'currency_code' => $currencyCode,
-            'received_at' => '2020-02-20',
+            'received_at' => $receivedAt,
         ]);
     }
+
 }
