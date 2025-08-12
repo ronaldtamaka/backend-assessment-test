@@ -56,6 +56,11 @@ class Loan extends Model
      */
     public function scheduledRepayments()
     {
-        return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        return $this->hasMany(ScheduledRepayment::class, 'loan_id')->orderBy('due_date', 'asc');
+    }
+
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }
