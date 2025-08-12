@@ -2,27 +2,23 @@
 
 namespace App\Http\Resources;
 
-use App\Models\DebitCard;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin DebitCard
- */
 class DebitCardTransactionResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @param  Request $request
-     *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function toArray($request)
+    public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'amount' => $this->amount,
-            'currency_code' => $this->currency_code,
+            'description' => $this->description,
+            'transaction_date' => $this->transaction_date,
         ];
     }
 }

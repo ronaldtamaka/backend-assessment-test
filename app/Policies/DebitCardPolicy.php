@@ -1,41 +1,31 @@
 <?php
 
-namespace App\Polocies;
+namespace App\Policies;
 
 use App\Models\DebitCard;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Auth\Access\Response;
 
-/**
- * Class DebitCardPolicy
- */
 class DebitCardPolicy
 {
-    use HandlesAuthorization;
-
     /**
-     * View Debit cards or a specific Debit Card
-     *
-     * @param User           $user
-     * @param DebitCard|null $debitCard
-     *
-     * @return bool
+     * Determine whether the user can view any models.
      */
-    public function view(User $user, ?DebitCard $debitCard = null): bool
+    public function viewAny(User $user): bool
     {
-        if (!$debitCard) {
-            return true;
-        }
-
-        return $user->is($debitCard->user);
+        return false;
     }
 
     /**
-     * Create a Debit card
-     *
-     * @param User  $user
-     *
-     * @return bool
+     * Determine whether the user can view the model.
+     */
+    public function view(User $user, DebitCard $debitCard): bool
+    {
+        return $user->id === $debitCard->user_id;
+    }
+
+    /**
+     * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
@@ -43,29 +33,34 @@ class DebitCardPolicy
     }
 
     /**
-     * View Debit cards or a specific Debit Card
-     *
-     * @param User           $user
-     * @param DebitCard $debitCard
-     *
-     * @return bool
+     * Determine whether the user can update the model.
      */
     public function update(User $user, DebitCard $debitCard): bool
     {
-        return $user->is($debitCard->user);
+        return $user->id === $debitCard->user_id;
     }
 
     /**
-     * View Debit cards or a specific Debit Card
-     *
-     * @param User           $user
-     * @param DebitCard $debitCard
-     *
-     * @return bool
+     * Determine whether the user can delete the model.
      */
     public function delete(User $user, DebitCard $debitCard): bool
     {
-        return $user->is($debitCard->user)
-            && $debitCard->debitCardTransactions()->doesntExist();
+        return $user->id === $debitCard->user_id;
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, DebitCard $debitCard): bool
+    {
+        return $user->id === $debitCard->user_id;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(User $user, DebitCard $debitCard): bool
+    {
+        return $user->id === $debitCard->user_id;
     }
 }

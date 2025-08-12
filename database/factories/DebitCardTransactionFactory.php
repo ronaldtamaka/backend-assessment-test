@@ -3,29 +3,25 @@
 namespace Database\Factories;
 
 use App\Models\DebitCard;
-use App\Models\DebitCardTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\DebitCardTransaction>
+ */
 class DebitCardTransactionFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
-    protected $model = DebitCardTransaction::class;
-
-    /**
      * Define the model's default state.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'amount' => $this->faker->randomNumber(),
-            'currency_code' => $this->faker->randomElement(DebitCardTransaction::CURRENCIES),
-            'debit_card_id' => fn () => DebitCard::factory()->create(),
+            'debit_card_id' => DebitCard::factory(),
+            'amount' => fake()->randomFloat(2, 10, 2000),
+            'description' => fake()->sentence(),
+            'transaction_date' => now(),
         ];
     }
 }

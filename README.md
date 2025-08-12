@@ -1,71 +1,61 @@
-## Backend Assessment Test
-### Setup procedure
-1. Checkout a new feature branch from `master`
-2. Do commit for every function updates
-3. Push the code and prepare the Pull Request from feature branch to master branch
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-### Test #01
-#### Objective
-Create feature tests to test *DebitCard* and *DebitCardTransaction* endpoints and relatives policies, validations and resources.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-#### Business Logic
-Each customer can have multiple *Debit Cards* and each debit card can have many *Debit Card Transactions*.
+## About Laravel
 
-- The customer should be able to create, update, read and delete his debit cards. 
-- For each debit card the customer should be able to read and create debit card transactions.
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-##### Debit cards endpoints:
-- **get** `/debit-cards`
-- **post** `/debit-cards`
-- **get** `/debit-cards/{debitCard}`
-- **put** `/debit-cards/{debitCard}`
-- **delete** `/debit-cards/{debitCard}`
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-##### Debit card transactions endpoints *(optional/bonus point)*:
-- **get** `/debit-card-transactions`
-- **post** `/debit-card-transactions`
-- **get** `/debit-card-transactions/{debitCardTransaction}`
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-For each endpoint there are specific condition and validation to asserts
+## Learning Laravel
 
-#### Challenge
-Read through the *DebitCard* and *DebitCardTransaction* routes, controllers, requests, resources and policies. 
-Understand the logic and write as much tests as possible to validate the endpoints. The `DebitCardControllerTest` and `DebitCardTransactionTest` are already created you just need to complete them.
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-Tips:
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-- verify positive and negative scenarios
-- assert response and database values
-- customer can handle only his own debit cards
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-**IMPORTANT:** For this challenge you SHOULD ONLY update the feature tests
+## Laravel Sponsors
 
----
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-### Test #02
+### Premium Partners
 
-#### Objective
-Create a Loan service to handle repayments based on complete unit tests already created.
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-#### Business Logic
-Each customer can have a credit *loan* (due in 3 or 6 months). So a Loan has 3 or 6 *scheduled repayments* (once each month),
-and it can be repaid with *received repayments*.
-Example:
+## Contributing
 
-Loan of 3 months, amount 3000$, created on 2021-01-01
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-- Scheduled Repayment of 1000$ due to 2021-02-01
-- Scheduled Repayment of 1000$ due to 2021-03-01
-- Scheduled Repayment of 1000$ due to 2021-04-01
+## Code of Conduct
 
-A customer can repay the full amount of each single scheduled repayment, but also he can repay partially or in full
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-#### Challenge
-Read through the tests of LoanService to understand what is the logic to be implemented. All classes and files are already created, you just need to complete them.
-In order to make the unit tests passed, you need to fulfil:
+## Security Vulnerabilities
 
-- the migrations/factories for scheduled_repayments and received_repayment tables (migration for loans table already done);
-- the Loan, ScheduledRepayment, and ReceivedRepayment Models;
-- the LoanService class;
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-**IMPORTANT:** For this challenge you SHOULD NOT update the unit test
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
