@@ -14,7 +14,7 @@ class DebitCardDestroyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('delete', $this->route('debitCard'));
+        return true;
     }
 
     /**

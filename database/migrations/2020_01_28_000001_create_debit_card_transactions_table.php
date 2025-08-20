@@ -15,8 +15,8 @@ class CreateDebitCardTransactionsTable extends Migration
     {
         Schema::create('debit_card_transactions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('debit_card_id');
-            $table->integer('amount');
+            $table->unsignedBigInteger('debit_card_id');
+            $table->decimal('amount', 10, 2);
             $table->string('currency_code');
             $table->timestamps();
             $table->softDeletes();

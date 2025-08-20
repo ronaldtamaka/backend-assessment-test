@@ -22,7 +22,7 @@ class DebitCardResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'number' => $this->number,
+            'card_number' => $this->card_number,
             'type' => $this->type,
             'expiration_date' => $this->expiration_date,
             'is_active' => $this->is_active,

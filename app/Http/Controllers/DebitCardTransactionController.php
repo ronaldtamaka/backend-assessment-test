@@ -3,48 +3,58 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DebitCardTransactionCreateRequest;
-use App\Http\Requests\DebitCardTransactionDestroyRequest;
 use App\Http\Requests\DebitCardTransactionShowIndexRequest;
 use App\Http\Requests\DebitCardTransactionShowRequest;
-use App\Http\Requests\DebitCardTransactionUpdateRequest;
 use App\Http\Resources\DebitCardTransactionResource;
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Illuminate\Support\Facades\Log;
 
 class DebitCardTransactionController extends BaseController
 {
     /**
      * Get debit card transactions list
-     *
-     * @param DebitCardTransactionShowIndexRequest $request
-     *
-     * @return JsonResponse
      */
     public function index(DebitCardTransactionShowIndexRequest $request): JsonResponse
     {
-        $debitCard = DebitCard::find($request->input('debit_card_id'));
+        $debitCardId = $request->input('debit_card_id');
 
-        $debitCardTransactions = $debitCard
-            ->debitCardTransactions()
-            ->get();
+        $debitCard = DebitCard::where('id', $debitCardId)
+            ->where('user_id', auth()->id())
+            ->first();
 
-        return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
+        if (!$debitCard) {
+            return response()->json(['data' => []], HttpResponse::HTTP_OK);
+        }
+
+        $transactions = $debitCard->debitCardTransactions()->get();
+
+        return response()->json([
+            'data' => $transactions->map(function ($trx) {
+                return [
+                    'id' => $trx->id,
+                    'amount' => $trx->amount,
+                    'currency_code' => $trx->currency_code,
+                ];
+            })
+        ], HttpResponse::HTTP_OK);
     }
 
     /**
      * Create a new debit card transaction
-     *
-     * @param DebitCardTransactionCreateRequest $request
-     *
-     * @return JsonResponse
      */
     public function store(DebitCardTransactionCreateRequest $request)
     {
-        $debitCard = DebitCard::find($request->input('debit_card_id'));
+        $debitCard = DebitCard::where('id', $request->input('debit_card_id'))
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$debitCard) {
+            return response()->json(['message' => 'Forbidden'], HttpResponse::HTTP_FORBIDDEN);
+        }
 
         $debitCardTransaction = $debitCard->debitCardTransactions()->create([
             'amount' => $request->input('amount'),
@@ -56,14 +66,34 @@ class DebitCardTransactionController extends BaseController
 
     /**
      * Show a debit card transaction
-     *
-     * @param DebitCardTransactionShowRequest $request
-     * @param DebitCardTransaction            $debitCardTransaction
-     *
-     * @return JsonResponse
      */
-    public function show(DebitCardTransactionShowRequest $request, DebitCardTransaction $debitCardTransaction)
+    public function show(DebitCardTransactionShowRequest $request, $id)
     {
-        return response()->json(new DebitCardTransactionResource($debitCardTransaction), HttpResponse::HTTP_OK);
+        $transaction = DebitCardTransaction::with('debitCard')
+            ->where('id', $id)
+            ->first();
+
+        if (!$transaction) {
+            return response()->json(['message' => 'Not found'], HttpResponse::HTTP_NOT_FOUND);
+        }
+
+        if (!$transaction->debitCard || $transaction->debitCard->user_id != auth()->id()) {
+            return response()->json(['message' => 'Forbidden'], HttpResponse::HTTP_FORBIDDEN);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $transaction->id,
+                'amount' => $transaction->amount,
+                'currency_code' => $transaction->currency_code,
+            ]
+        ], HttpResponse::HTTP_OK);
+
+        Log::info('DEBUG_SHOW', [
+            'auth_id' => auth()->id(),
+            'trx_id' => $transaction->id,
+            'trx_card_id' => $transaction->debit_card_id,
+            'card_user_id' => $transaction->debitCard->user_id ?? null
+        ]);
     }
 }

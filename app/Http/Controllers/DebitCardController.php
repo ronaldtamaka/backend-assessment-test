@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\DebitCardCreateRequest;
 use App\Http\Requests\DebitCardDestroyRequest;
 use App\Http\Requests\DebitCardShowRequest;
 use App\Http\Requests\DebitCardUpdateRequest;
 use App\Http\Resources\DebitCardResource;
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
@@ -24,12 +25,9 @@ class DebitCardController extends BaseController
      */
     public function index(DebitCardShowRequest $request): JsonResponse
     {
-        $debitCards = $request->user()
-            ->debitCards()
-            ->active()
-            ->get();
+        $cards = DebitCard::where('user_id', auth()->id())->get();
 
-        return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
+         return response()->json(['data' => $cards], 200);
     }
 
     /**
@@ -43,7 +41,7 @@ class DebitCardController extends BaseController
     {
         $debitCard = $request->user()->debitCards()->create([
             'type' => $request->input('type'),
-            'number' => rand(1000000000000000, 9999999999999999),
+            'card_number' =>  $request->card_number,
             'expiration_date' => Carbon::now()->addYear(),
         ]);
 
@@ -60,7 +58,7 @@ class DebitCardController extends BaseController
      */
     public function show(DebitCardShowRequest $request, DebitCard $debitCard)
     {
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
+        return response()->json(['data' => $debitCard], 200);
     }
 
     /**
@@ -73,11 +71,19 @@ class DebitCardController extends BaseController
      */
     public function update(DebitCardUpdateRequest $request, DebitCard $debitCard)
     {
-        $debitCard->update([
-            'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
+        if ($debitCard->user_id != auth()->id()) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:active,inactive'
         ]);
 
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
+        $debitCard->update([
+            'status' => $request->status
+        ]);
+
+        return response()->json(['message' => 'Updated successfully'], 200);
     }
 
     /**
@@ -91,8 +97,19 @@ class DebitCardController extends BaseController
      */
     public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
     {
-        $debitCard->delete();
 
-        return response()->json([], HttpResponse::HTTP_NO_CONTENT);
+      if (!$debitCard || $debitCard->user_id != auth()->id()) {
+        return response()->json(['message' => 'Forbidden'], 403);
     }
+
+    if (DebitCardTransaction::where('debit_card_id', $debitCard->id)->exists()) {
+        return response()->json([
+            'message' => 'Cannot delete a card with existing transactions.'
+        ], 422);
+    }
+
+    $debitCard->forceDelete();
+
+    return response()->json(['message' => 'Deleted successfully'], 200);
+     } 
 }

@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
@@ -22,53 +25,110 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCanSeeAListOfDebitCards()
     {
-        // get /debit-cards
+        DebitCard::factory()->count(2)->create(['user_id' => $this->user->id]);
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertStatus(200)
+                 ->assertJsonCount(2, 'data');
     }
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
-        // get /debit-cards
+        $otherUser = User::factory()->create();
+        DebitCard::factory()->create(['user_id' => $otherUser->id]);
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertStatus(200)
+                 ->assertJsonCount(0, 'data');
     }
 
     public function testCustomerCanCreateADebitCard()
     {
-        // post /debit-cards
+        $payload = ['card_number' => '1234567890123456', 'status' => 'active', 'type' => 'Visa'];
+
+        $response = $this->postJson('/api/debit-cards', $payload);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('debit_cards', ['card_number' => '1234567890123456']);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id]);
+
+        $response = $this->getJson("/api/debit-cards/{$card->id}");
+
+        $response->assertStatus(200)
+                 ->assertJsonPath('data.id', $card->id);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $otherCard = DebitCard::factory()->create();
+
+        $response = $this->getJson("/api/debit-cards/{$otherCard->id}");
+
+        $response->assertStatus(403);
     }
 
     public function testCustomerCanActivateADebitCard()
     {
-        // put api/debit-cards/{debitCard}
-    }
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id, 'status' => 'inactive']);
 
-    public function testCustomerCanDeactivateADebitCard()
-    {
-        // put api/debit-cards/{debitCard}
+        $response = $this->putJson("/api/debit-cards/{$card->id}", ['status' => 'active']);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('debit_cards', ['id' => $card->id, 'status' => 'active']);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
     {
-        // put api/debit-cards/{debitCard}
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id]);
+
+        $response = $this->putJson("/api/debit-cards/{$card->id}", ['card_number' => '123']);
+
+        $response->assertStatus(422);
     }
 
     public function testCustomerCanDeleteADebitCard()
     {
-        // delete api/debit-cards/{debitCard}
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id]);
+
+        $response = $this->deleteJson("/api/debit-cards/{$card->id}");
+
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('debit_cards', ['id' => $card->id]);
     }
 
-    public function testCustomerCannotDeleteADebitCardWithTransaction()
-    {
-        // delete api/debit-cards/{debitCard}
-    }
+   public function testCustomerCannotDeleteADebitCardWithTransaction()
+    {   
+        
+   $card = DebitCard::factory()->create([
+        'user_id' => $this->user->id
+    ]);
 
-    // Extra bonus for extra tests :)
+    DebitCardTransaction::factory()->create([
+        'debit_card_id' => $card->id,
+    ]);
+
+   
+    $card->refresh();
+
+    Log::info('DEBUG_TEST', [
+        'trx_count' => $card->debitCardTransactions()->count()
+    ]);
+
+    $this->assertDatabaseHas('debit_card_transactions', [
+        'debit_card_id' => $card->id
+    ]);
+
+    $response = $this->deleteJson("/api/debit-cards/{$card->id}");
+
+    $response->assertStatus(422)
+             ->assertJson([
+                 'message' => 'Cannot delete a card with existing transactions.'
+             ]);
+    }
 }

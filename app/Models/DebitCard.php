@@ -29,8 +29,9 @@ class DebitCard extends Authenticatable
      */
     protected $fillable = [
         'user_id',
-        'number',
+        'card_number',
         'type',
+        'status',
         'expiration_date',
         'disabled_at',
     ];
@@ -71,8 +72,9 @@ class DebitCard extends Authenticatable
      */
     public function debitCardTransactions()
     {
-        return $this->hasMany(DebitCardTransaction::class, 'debit_card_id');
+        return $this->hasMany(DebitCardTransaction::class, 'debit_card_id', 'id');
     }
+    
 
     /**
      * Scope active debit cards

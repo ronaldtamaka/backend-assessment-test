@@ -15,10 +15,10 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
-            $table->integer('amount');
+           $table->unsignedBigInteger('user_id');
+           $table->decimal('amount', 10, 2);
             $table->integer('terms');
-            $table->integer('outstanding_amount');
+            $table->decimal('outstanding_amount', 10, 2);
             $table->string('currency_code');
             $table->date('processed_at');
             $table->string('status');

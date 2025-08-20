@@ -4,8 +4,8 @@ namespace App\Providers;
 
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
-use App\Polocies\DebitCardPolicy;
-use App\Polocies\DebitCardTransactionPolicy;
+use App\Policies\DebitCardPolicy;
+use App\Policies\DebitCardTransactionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -18,7 +18,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         DebitCard::class => DebitCardPolicy::class,
-        DebitCardTransaction::class => DebitCardTransactionPolicy::class,
+        //DebitCardTransaction::class => DebitCardTransactionPolicy::class,
     ];
 
     /**

@@ -23,11 +23,12 @@ class DebitCardFactory extends Factory
     public function definition(): array
     {
         return [
-            'number' => $this->faker->creditCardNumber,
+            'card_number' => $this->faker->unique()->creditCardNumber(),
             'type' => $this->faker->creditCardType,
             'expiration_date' => $this->faker->dateTimeBetween('+1 month', '+3 year'),
             'disabled_at' => $this->faker->boolean ? $this->faker->dateTime : null,
-            'user_id' => fn () => User::factory()->create(),
+             'status' => 'inactive',
+             'user_id' =>  $attributes['user_id'] ?? User::factory(),
         ];
     }
 

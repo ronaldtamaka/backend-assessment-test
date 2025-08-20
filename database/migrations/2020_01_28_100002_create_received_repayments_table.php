@@ -6,19 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateReceivedRepaymentsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('received_repayments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('loan_id');
-
-            // TODO: Add missing columns here
-
+            $table->unsignedBigInteger('loan_id');
+            $table->decimal('amount', 10, 2);
+            $table->string('currency_code');
+            $table->date('received_at');
             $table->timestamps();
             $table->softDeletes();
 
@@ -30,11 +25,6 @@ class CreateReceivedRepaymentsTable extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::disableForeignKeyConstraints();
