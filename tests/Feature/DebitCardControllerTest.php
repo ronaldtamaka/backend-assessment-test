@@ -234,4 +234,14 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
     }
+
+    public function testCustomerCannotUpdateADebitCardWithInvalidDataType()
+    {
+        $debitCard = DebitCard::factory()->for($this->user)->create();
+
+        $response = $this->putJson('/api/debit-cards/' . $debitCard->id, ['is_active' => 'not a boolean']);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['is_active']);
+    }
 }
