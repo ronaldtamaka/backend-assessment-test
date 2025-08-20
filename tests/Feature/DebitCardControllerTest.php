@@ -176,4 +176,14 @@ class DebitCardControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+
+    public function testCustomerCannotCreateADebitCardWithoutType()
+    {
+        $payload = ['type' => '']; // Sending an empty string for a required field
+
+        $response = $this->postJson('/api/debit-cards', $payload);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+    }
 }
