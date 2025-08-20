@@ -226,4 +226,12 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['is_active']);
     }
+
+    public function testCustomerCannotCreateADebitCardWithEmptyArray()
+    {
+        $response = $this->postJson('/api/debit-cards', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+    }
 }
