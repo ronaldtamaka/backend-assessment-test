@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-class DebitCard extends Authenticatable
+class DebitCard extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -33,15 +31,7 @@ class DebitCard extends Authenticatable
         'type',
         'expiration_date',
         'disabled_at',
-    ];
-
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
-    protected $dates = [
-        'disabled_at',
+        'is_active',
     ];
 
     /**
@@ -50,7 +40,9 @@ class DebitCard extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'disabled_at' => 'datetime:Y-m-d H:i:s',
+        'disabled_at' => 'datetime',
+        'expiration_date' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
 
@@ -83,16 +75,15 @@ class DebitCard extends Authenticatable
      */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->whereNull('disabled_at');
+        return $query->where('is_active', true)->whereNull('disabled_at');
     }
-
+    
     /**
-     * Convert disabled_at in boolean attribute
-     *
-     * @return bool
+     * Update disabled_at when is_active changes
      */
-    public function getIsActiveAttribute(): bool
+    public function setIsActiveAttribute($value)
     {
-        return is_null($this->disabled_at);
+        $this->attributes['is_active'] = $value;
+        $this->attributes['disabled_at'] = $value ? null : now();
     }
 }

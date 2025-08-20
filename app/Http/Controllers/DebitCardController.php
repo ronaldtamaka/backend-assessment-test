@@ -29,7 +29,9 @@ class DebitCardController extends BaseController
             ->active()
             ->get();
 
-        return response()->json(DebitCardResource::collection($debitCards), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => DebitCardResource::collection($debitCards)
+        ], HttpResponse::HTTP_OK);
     }
 
     /**
@@ -45,9 +47,13 @@ class DebitCardController extends BaseController
             'type' => $request->input('type'),
             'number' => rand(1000000000000000, 9999999999999999),
             'expiration_date' => Carbon::now()->addYear(),
+            'is_active' => true,
+            'disabled_at' => null,
         ]);
 
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_CREATED);
+        return response()->json([
+            'data' => new DebitCardResource($debitCard)
+        ], HttpResponse::HTTP_CREATED);
     }
 
     /**
@@ -60,7 +66,9 @@ class DebitCardController extends BaseController
      */
     public function show(DebitCardShowRequest $request, DebitCard $debitCard)
     {
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => new DebitCardResource($debitCard)
+        ], HttpResponse::HTTP_OK);
     }
 
     /**
@@ -73,11 +81,15 @@ class DebitCardController extends BaseController
      */
     public function update(DebitCardUpdateRequest $request, DebitCard $debitCard)
     {
+        $isActive = $request->input('is_active');
         $debitCard->update([
-            'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
+            'is_active' => $isActive,
+            'disabled_at' => $isActive ? null : now(),
         ]);
 
-        return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => new DebitCardResource($debitCard->fresh())
+        ], HttpResponse::HTTP_OK);
     }
 
     /**

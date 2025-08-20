@@ -26,7 +26,8 @@ class DebitCardFactory extends Factory
             'number' => $this->faker->creditCardNumber,
             'type' => $this->faker->creditCardType,
             'expiration_date' => $this->faker->dateTimeBetween('+1 month', '+3 year'),
-            'disabled_at' => $this->faker->boolean ? $this->faker->dateTime : null,
+            'is_active' => true,
+            'disabled_at' => null,
             'user_id' => fn () => User::factory()->create(),
         ];
     }
@@ -39,6 +40,7 @@ class DebitCardFactory extends Factory
     public function active(): Factory
     {
         return $this->state(fn () => [
+            'is_active' => true,
             'disabled_at' => null,
         ]);
     }
@@ -51,6 +53,7 @@ class DebitCardFactory extends Factory
     public function expired(): Factory
     {
         return $this->state(fn () => [
+            'is_active' => false,
             'disabled_at' => $this->faker->dateTime,
         ]);
     }

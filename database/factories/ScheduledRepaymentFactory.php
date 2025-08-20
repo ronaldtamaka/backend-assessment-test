@@ -22,7 +22,13 @@ class ScheduledRepaymentFactory extends Factory
     public function definition(): array
     {
         return [
-            // TODO: Complete factory
+            'amount' => $this->faker->numberBetween(100, 5000),
+            'outstanding_amount' => function (array $attributes) {
+                return $attributes['amount'];
+            },
+            'currency_code' => $this->faker->randomElement(['SGD', 'VND']),
+            'due_date' => $this->faker->dateTimeBetween('+1 month', '+6 months'),
+            'status' => ScheduledRepayment::STATUS_DUE,
         ];
     }
 }

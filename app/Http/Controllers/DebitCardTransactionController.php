@@ -32,7 +32,9 @@ class DebitCardTransactionController extends BaseController
             ->debitCardTransactions()
             ->get();
 
-        return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => DebitCardTransactionResource::collection($debitCardTransactions)
+        ], HttpResponse::HTTP_OK);
     }
 
     /**
@@ -51,7 +53,9 @@ class DebitCardTransactionController extends BaseController
             'currency_code' => $request->input('currency_code'),
         ]);
 
-        return response()->json(new DebitCardTransactionResource($debitCardTransaction), HttpResponse::HTTP_CREATED);
+        return response()->json([
+            'data' => new DebitCardTransactionResource($debitCardTransaction)
+        ], HttpResponse::HTTP_CREATED);
     }
 
     /**
@@ -64,6 +68,8 @@ class DebitCardTransactionController extends BaseController
      */
     public function show(DebitCardTransactionShowRequest $request, DebitCardTransaction $debitCardTransaction)
     {
-        return response()->json(new DebitCardTransactionResource($debitCardTransaction), HttpResponse::HTTP_OK);
+        return response()->json([
+            'data' => new DebitCardTransactionResource($debitCardTransaction)
+        ], HttpResponse::HTTP_OK);
     }
 }
