@@ -164,4 +164,10 @@ class DebitCardTransactionControllerTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['amount', 'currency_code']);
     }
+
+    public function testWrongHttpVerbOnTransactionIndexEndpoint()
+    {
+        $this->deleteJson('/api/debit-card-transactions?debit_card_id=' . $this->debitCard->id)
+            ->assertStatus(405);
+    }
 }
