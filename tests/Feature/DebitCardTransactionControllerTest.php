@@ -186,4 +186,11 @@ class DebitCardTransactionControllerTest extends TestCase
         $this->getJson('/api/debit-card-transactions/999')
             ->assertNotFound();
     }
+
+    public function testCustomerCanSeeAnEmptyListOfDebitCardTransactions()
+    {
+        $this->getJson('/api/debit-card-transactions?debit_card_id=' . $this->debitCard->id)
+            ->assertOk()
+            ->assertJsonCount(0);
+    }
 }
