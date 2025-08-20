@@ -133,4 +133,11 @@ class DebitCardTransactionControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+
+    public function testIndexRequiresDebitCardId()
+    {
+        $response = $this->getJson('/api/debit-card-transactions');
+
+        $response->assertForbidden();
+    }
 }
