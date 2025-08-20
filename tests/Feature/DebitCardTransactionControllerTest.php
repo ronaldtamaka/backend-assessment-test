@@ -170,4 +170,14 @@ class DebitCardTransactionControllerTest extends TestCase
         $this->deleteJson('/api/debit-card-transactions?debit_card_id=' . $this->debitCard->id)
             ->assertStatus(405);
     }
+
+    public function testWrongHttpVerbOnTransactionShowEndpoint()
+    {
+        $transaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+
+        $this->deleteJson("/api/debit-card-transactions/{$transaction->id}")
+            ->assertStatus(405);
+    }
 }
