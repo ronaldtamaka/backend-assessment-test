@@ -267,4 +267,16 @@ class DebitCardControllerTest extends TestCase
         $this->postJson("/api/debit-cards/{$debitCard->id}")
             ->assertStatus(405); // Expect 405 Method Not Allowed
     }
+
+    public function testDebitCardsEndpointRejectsInvalidVerbs()
+    {
+        // PATCH request
+        $this->patchJson('/api/debit-cards')->assertStatus(405); // Expect 405 Method Not Allowed
+
+        // PUT request
+        $this->putJson('/api/debit-cards')->assertStatus(405); // Expect 405 Method Not Allowed
+
+        // DELETE request
+        $this->deleteJson('/api/debit-cards')->assertStatus(405); // Expect 405 Method Not Allowed
+    }
 }
