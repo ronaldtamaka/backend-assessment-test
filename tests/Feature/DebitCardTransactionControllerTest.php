@@ -47,6 +47,16 @@ class DebitCardTransactionControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
     {
         // get /debit-card-transactions
+        $anotherUser = User::factory()->create();
+        $anotherDebitCard = DebitCard::factory()->create([
+            'user_id' => $anotherUser->id
+        ]);
+        $anotherDebitCard->debitCardTransactions()->createMany(
+            DebitCardTransaction::factory()->count(3)->make()->toArray()
+        );
+
+        $this->getJson('/api/debit-card-transactions?debit_card_id=' . $anotherDebitCard->id)
+            ->assertForbidden();
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
