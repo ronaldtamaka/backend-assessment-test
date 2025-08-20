@@ -279,4 +279,11 @@ class DebitCardControllerTest extends TestCase
         // DELETE request
         $this->deleteJson('/api/debit-cards')->assertStatus(405); // Expect 405 Method Not Allowed
     }
+
+    public function testCustomerCannotViewInvalidDebitCard()
+    {
+        $response = $this->getJson('/api/debit-cards/999');
+
+        $response->assertNotFound();
+    }
 }
