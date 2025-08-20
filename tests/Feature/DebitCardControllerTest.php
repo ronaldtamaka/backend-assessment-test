@@ -301,4 +301,9 @@ class DebitCardControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(0);
     }
+
+    public function testNonExistentRouteReturns404()
+    {
+        $this->getJson('/api/non-existent-endpoint')->assertNotFound();
+    }
 }
