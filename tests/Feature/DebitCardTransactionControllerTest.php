@@ -151,4 +151,17 @@ class DebitCardTransactionControllerTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['amount', 'currency_code']);
     }
+
+    public function testCustomerCannotCreateADebitCardTransactionWithInvalidData()
+    {
+        $payload = [
+            'debit_card_id' => $this->debitCard->id,
+            'amount' => 'not-an-integer',
+            'currency_code' => 'INVALID_CURRENCY',
+        ];
+
+        $this->postJson('/api/debit-card-transactions', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['amount', 'currency_code']);
+    }
 }
