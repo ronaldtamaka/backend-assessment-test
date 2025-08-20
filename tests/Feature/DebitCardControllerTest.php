@@ -293,4 +293,12 @@ class DebitCardControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function testCustomerCanSeeAnEmptyListOfDebitCards()
+    {
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertOk()
+            ->assertJsonCount(0);
+    }
 }
