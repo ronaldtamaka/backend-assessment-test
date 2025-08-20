@@ -206,4 +206,14 @@ class DebitCardControllerTest extends TestCase
 
         $response->assertForbidden(); // Expect 403 Forbidden based on policy
     }
+
+    public function testCustomerCannotDeleteADebitCardOfAnotherCustomer()
+    {
+        $otherUser = User::factory()->create();
+        $otherDebitCard = DebitCard::factory()->for($otherUser)->create();
+
+        $response = $this->deleteJson('/api/debit-cards/' . $otherDebitCard->id);
+
+        $response->assertForbidden(); // Expect 403 Forbidden based on policy
+    }
 }
