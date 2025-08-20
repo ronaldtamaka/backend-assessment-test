@@ -50,7 +50,7 @@ class DebitCardTransaction extends Authenticatable
      *
      * @return BelongsTo
      */
-    public function debitCard()
+    public function debitCard(): BelongsTo
     {
         return $this->belongsTo(DebitCard::class, 'debit_card_id');
     }
