@@ -140,4 +140,15 @@ class DebitCardTransactionControllerTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function testCustomerCannotCreateADebitCardTransactionWithMissingFields()
+    {
+        $payload = [
+            'debit_card_id' => $this->debitCard->id,
+        ];
+
+        $response = $this->postJson('/api/debit-card-transactions', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['amount', 'currency_code']);
+    }
 }
