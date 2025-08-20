@@ -254,4 +254,17 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
     }
+
+    public function testDebitCardByIdEndpointRejectsPatchAndPost()
+    {
+        $debitCard = DebitCard::factory()->create();
+
+        // PATCH should fail
+        $this->patchJson("/api/debit-cards/{$debitCard->id}")
+            ->assertStatus(405); // Expect 405 Method Not Allowed
+
+        // POST should fail
+        $this->postJson("/api/debit-cards/{$debitCard->id}")
+            ->assertStatus(405); // Expect 405 Method Not Allowed
+    }
 }
