@@ -186,4 +186,14 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
     }
+
+    public function testCustomerCannotCreateADebitCardWithInvalidType()
+    {
+        $payload = ['type' => 123]; // Sending an integer instead of a string
+
+        $response = $this->postJson('/api/debit-cards', $payload);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+    }
 }
