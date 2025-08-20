@@ -180,4 +180,10 @@ class DebitCardTransactionControllerTest extends TestCase
         $this->deleteJson("/api/debit-card-transactions/{$transaction->id}")
             ->assertStatus(405);
     }
+
+    public function testCustomerCannotSeeADebitCardTransactionThatDoesNotExist()
+    {
+        $this->getJson('/api/debit-card-transactions/999')
+            ->assertNotFound();
+    }
 }
