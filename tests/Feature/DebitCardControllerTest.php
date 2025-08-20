@@ -196,4 +196,14 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
     }
+
+    public function testCustomerCannotUpdateADebitCardOfAnotherCustomer()
+    {
+        $otherUser = User::factory()->create();
+        $otherDebitCard = DebitCard::factory()->for($otherUser)->create(['disabled_at' => null]);
+
+        $response = $this->putJson('/api/debit-cards/' . $otherDebitCard->id, ['is_active' => false]);
+
+        $response->assertForbidden(); // Expect 403 Forbidden based on policy
+    }
 }
