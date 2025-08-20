@@ -286,4 +286,11 @@ class DebitCardControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function testCustomerCannotDeleteInvalidDebitCard()
+    {
+        $response = $this->deleteJson('/api/debit-cards/999');
+
+        $response->assertNotFound();
+    }
 }
