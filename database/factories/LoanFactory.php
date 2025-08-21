@@ -29,9 +29,9 @@ class LoanFactory extends Factory
             'amount' => $amount,
             'outstanding_amount' => $amount,
             'terms' => $this->faker->randomElement([3, 6]),
-            'currency_code' => $this->faker->randomElement([Loan::CURRENCY_SGD, Loan::CURRENCY_VND]),
-            'processed_at' => $this->faker->date(),
-            'status' => Loan::STATUS_DUE,
+            'currency_code' => Loan::CURRENCY_VND,
+            'processed_at'  => $this->faker->date(),
+            'status'        => Loan::STATUS_DUE,
         ];
     }
 }
