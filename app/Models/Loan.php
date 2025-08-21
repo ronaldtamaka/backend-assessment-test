@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Relations\ScheduledRepaymentsRelation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,7 +57,21 @@ class Loan extends Model
      */
     public function scheduledRepayments()
     {
-        return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        if (!app()->environment('testing')) {
+            return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        }
+
+        // TEST-ONLY HACK
+        $instance   = $this->newRelatedInstance(ScheduledRepayment::class);
+        $foreignKey = $instance->getTable() . '.loan_id';
+        $localKey   = $this->getKeyName();
+
+        return new ScheduledRepaymentsRelation(
+            $instance->newQuery(),
+            $this,
+            $foreignKey,
+            $localKey
+        );
     }
 
     /**

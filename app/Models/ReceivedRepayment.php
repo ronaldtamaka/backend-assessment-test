@@ -30,15 +30,6 @@ class ReceivedRepayment extends Model
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'received_at' => 'date',
-    ];
-
-    /**
      * A Received Repayment belongs to a Loan
      *
      * @return BelongsTo
