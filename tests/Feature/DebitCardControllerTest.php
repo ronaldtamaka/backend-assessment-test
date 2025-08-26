@@ -190,7 +190,7 @@ class DebitCardControllerTest extends TestCase
         $url = '/api/debit-cards/'.$debitCard->json()['id'];
 
         $data = [
-            'is_active' => true,
+            'is_active' => false,
         ];
         $response = $this->actingAs($secondUser)->put($url, $data);
         $response->assertStatus(403);
@@ -203,6 +203,11 @@ class DebitCardControllerTest extends TestCase
 
         $response = $this->delete($url);
         $response->assertStatus(204);
+
+        // assert that debit card is deleted
+        $this->assertSoftDeleted('debit_cards', [
+            'id' => strval($debitCard->json()['id']),
+        ]);
     }
 
     public function testCustomerCannotDeleteADebitCardWithTransaction()
@@ -210,16 +215,11 @@ class DebitCardControllerTest extends TestCase
         $debitCard = DebitCardTestHelper::createDebitCard($this);
         $url = '/api/debit-cards/'.$debitCard->json()['id'];
 
-        // create transaction
-        $urlCreateTransaction = '/api/debit-card-transactions';
-        $responseCreateTransaction = $this->actingAs($this->user)->post($urlCreateTransaction, [
-            'currency_code' => 'IDR',
-            'amount' => 100,
-            'debit_card_id' => $debitCard->json()['id'],
-        ]);
+        $responseCreateTransaction = DebitCardTestHelper::createTransaction($this, $debitCard->json()['id']);
         $responseCreateTransaction->assertStatus(201);
 
         $responseDelete = $this->delete($url);
+        
         $responseDelete->assertStatus(403);
     }
 
@@ -233,6 +233,7 @@ class DebitCardControllerTest extends TestCase
         $url = '/api/debit-cards/'.$debitCard->json()['id'];
 
         $response = $this->actingAs($secondUser)->delete($url);
+
         $response->assertStatus(403);
     }
 
@@ -245,7 +246,7 @@ class DebitCardControllerTest extends TestCase
         $url = '/api/debit-cards/'.$debitCard->json()['id'];
 
         $data = [
-            'is_active' => true,
+            'is_active' => false,
         ];
         $response = $this->actingAs($secondUser)->put($url, $data);
         $response->assertStatus(403);
@@ -255,7 +256,7 @@ class DebitCardControllerTest extends TestCase
     {
         $url = '/api/debit-cards/4'; //use random id
 
-        $response = $this->get($url);
+        $response = $this->get($url);   
         $response->assertStatus(404);
     }
 }
