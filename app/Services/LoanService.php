@@ -76,6 +76,41 @@ class LoanService
             'received_at' => $receivedAt,
         ]);
 
+        //check other paid scheduled repayments, and update loan outstanding amount
+        $otherScheduledRepayments = $loan->scheduledRepayments()->where('loan_id', $loan->id)->where('status', ScheduledRepayment::STATUS_REPAID)->get();
+        foreach ($otherScheduledRepayments as $otherScheduledRepayment) {
+            $loan->outstanding_amount -= $otherScheduledRepayment->amount;
+        }
+
+        //update loan outstanding amount
+        $loan->outstanding_amount -= $amount;
+        if ($loan->outstanding_amount == 0) {
+            $loan->status = Loan::STATUS_REPAID;
+        }
+        $loan->save();
+
+        //update scheduled repayment
+        $scheduledRepayment = $loan->scheduledRepayments()->where('due_date', '=', $receivedAt)->first();
+        $scheduledRepaymentOutstandingAmount = $scheduledRepayment->outstanding_amount;
+        
+        if ($scheduledRepaymentOutstandingAmount - $amount == 0) {
+            $scheduledRepayment->status = ScheduledRepayment::STATUS_REPAID;
+            $scheduledRepayment->outstanding_amount = 0;
+        } elseif ($amount > $scheduledRepaymentOutstandingAmount) {
+            $scheduledRepayment->status = ScheduledRepayment::STATUS_REPAID;
+            $scheduledRepayment->outstanding_amount = 0;
+
+            $remainAmount = $amount - $scheduledRepaymentOutstandingAmount;
+            $nextScheduledRepayment = $loan->scheduledRepayments()->where('loan_id', $loan->id)->where('due_date', '>', $receivedAt)->first();
+            $nextScheduledRepayment->outstanding_amount -= $remainAmount;
+            $nextScheduledRepayment->status = ScheduledRepayment::STATUS_PARTIAL;
+            $nextScheduledRepayment->save();
+        } else {
+            $scheduledRepayment->outstanding_amount = $scheduledRepaymentOutstandingAmount - $amount;
+        }
+        $scheduledRepayment->save();
+
+
         return $receivedRepayment;
     }
 }
