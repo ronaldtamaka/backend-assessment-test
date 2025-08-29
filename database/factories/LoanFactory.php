@@ -23,6 +23,13 @@ class LoanFactory extends Factory
     {
         return [
             // TODO: Complete factory
+            'user_id' => null,
+            'amount' => 0,
+            'outstanding_amount' => 0, 
+            'terms' => $this->faker->numberBetween(1, 12),
+            'currency_code' => Loan::CURRENCY_VND,
+            'processed_at' => $this->faker->date(),
+            'status' => Loan::STATUS_DUE,
         ];
     }
 }

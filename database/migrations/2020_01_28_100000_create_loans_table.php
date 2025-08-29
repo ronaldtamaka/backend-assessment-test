@@ -15,7 +15,10 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
             $table->integer('amount');
             $table->integer('terms');
             $table->integer('outstanding_amount');
@@ -24,12 +27,6 @@ class CreateLoansTable extends Migration
             $table->string('status');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
         });
     }
 
