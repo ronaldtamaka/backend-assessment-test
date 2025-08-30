@@ -15,18 +15,14 @@ class CreateScheduledRepaymentsTable extends Migration
     {
         Schema::create('scheduled_repayments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('loan_id');
-
-            // TODO: Add missing columns here
-
+            $table->foreignId('loan_id')->constrained()->onUpdate('cascade')->onDelete('restrict');
+            $table->integer('amount');
+            $table->integer('outstanding_amount');
+            $table->string('currency_code');
+            $table->date('due_date');
+            $table->enum('status', ['due', 'partial', 'repaid'])->default('due');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('loan_id')
-                ->references('id')
-                ->on('loans')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
         });
     }
 
