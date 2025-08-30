@@ -22,8 +22,8 @@ class DebitCardTransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'debit_card_id' => $this->debit_card_id,
-            'amount' => $this->amount,
+            'debit_card_id' => (int) $this->debit_card_id,
+            'amount' => (int) $this->amount,
             'currency_code' => $this->currency_code,
         ];
     }

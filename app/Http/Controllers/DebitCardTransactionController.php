@@ -8,6 +8,7 @@ use App\Http\Requests\DebitCardTransactionShowIndexRequest;
 use App\Http\Requests\DebitCardTransactionShowRequest;
 use App\Http\Requests\DebitCardTransactionUpdateRequest;
 use App\Http\Resources\DebitCardTransactionResource;
+use App\Http\Resources\DebitCardTransactionListResource;
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
 use Carbon\Carbon;
@@ -28,11 +29,16 @@ class DebitCardTransactionController extends BaseController
     {
         $debitCard = DebitCard::find($request->input('debit_card_id'));
 
-        $debitCardTransactions = $debitCard
-            ->debitCardTransactions()
-            ->get();
+        // Only show transactions if user owns the debit card
+        if ($request->user()->is($debitCard->user)) {
+            $debitCardTransactions = $debitCard
+                ->debitCardTransactions()
+                ->get();
+        } else {
+            $debitCardTransactions = collect(); // Empty collection for other users
+        }
 
-        return response()->json(DebitCardTransactionResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
+        return response()->json(DebitCardTransactionListResource::collection($debitCardTransactions), HttpResponse::HTTP_OK);
     }
 
     /**
@@ -45,6 +51,11 @@ class DebitCardTransactionController extends BaseController
     public function store(DebitCardTransactionCreateRequest $request)
     {
         $debitCard = DebitCard::find($request->input('debit_card_id'));
+
+        // Check if user can create transaction for this debit card
+        if (!$request->user()->can('create', [DebitCardTransaction::class, $debitCard])) {
+            abort(403, 'Unauthorized');
+        }
 
         $debitCardTransaction = $debitCard->debitCardTransactions()->create([
             'amount' => $request->input('amount'),
