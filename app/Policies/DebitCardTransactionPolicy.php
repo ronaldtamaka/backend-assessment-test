@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Polocies;
+namespace App\Policies;
 
 use App\Models\DebitCard;
 use App\Models\DebitCardTransaction;
@@ -22,8 +22,11 @@ class DebitCardTransactionPolicy
      *
      * @return bool
      */
-    public function view(User $user, DebitCardTransaction $debitCardTransaction): bool
+    public function view(?User $user, DebitCardTransaction $debitCardTransaction): bool
     {
+        if (!$user) {
+            return false;
+        }
         return $user->is($debitCardTransaction->debitCard->user);
     }
 
@@ -35,8 +38,11 @@ class DebitCardTransactionPolicy
      *
      * @return bool
      */
-    public function create(User $user, DebitCard $debitCard): bool
+    public function create(?User $user, DebitCard $debitCard): bool
     {
+        if (!$user) {
+            return false;
+        }
         return $user->is($debitCard->user);
     }
 }

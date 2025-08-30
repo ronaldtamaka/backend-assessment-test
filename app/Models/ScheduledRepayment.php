@@ -10,33 +10,26 @@ class ScheduledRepayment extends Model
 {
     use HasFactory;
 
-    public const STATUS_DUE = 'due';
-    public const STATUS_PARTIAL = 'partial';
-    public const STATUS_REPAID = 'repaid';
+    public const STATUS_DUE = 'DUE';
+    public const STATUS_REPAID = 'REPAID';
+    public const STATUS_PARTIAL = 'PARTIAL';
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'scheduled_repayments';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        //
+        'loan_id',
+        'amount',
+        'outstanding_amount',
+        'currency_code',
+        'due_date',
+        'status',
     ];
 
     /**
-     * A Scheduled Repayment belongs to a Loan
+     * A Scheduled Repayment belongs to a loan
      *
      * @return BelongsTo
      */
-    public function loan()
+    public function loan(): BelongsTo
     {
-        return $this->belongsTo(Loan::class, 'loan_id');
+        return $this->belongsTo(Loan::class);
     }
 }

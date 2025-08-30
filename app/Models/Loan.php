@@ -9,20 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Loan extends Model
 {
-    public const STATUS_DUE = 'due';
-    public const STATUS_REPAID = 'repaid';
-
-    public const CURRENCY_SGD = 'SGD';
-    public const CURRENCY_VND = 'VND';
-
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'loans';
+    public const STATUS_DUE = 'DUE';
+    public const STATUS_REPAID = 'REPAID';
+
+    public const CURRENCY_IDR = 'IDR';
+    public const CURRENCY_VND = 'VND';
 
     /**
      * The attributes that are mass assignable.
@@ -40,22 +33,41 @@ class Loan extends Model
     ];
 
     /**
-     * A Loan belongs to a User
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'processed_at' => 'date:Y-m-d',
+    ];
+
+    /**
+     * A Loan belongs to a user
      *
      * @return BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * A Loan has many Scheduled Repayments
+     * A Loan has many scheduled repayments
      *
      * @return HasMany
      */
-    public function scheduledRepayments()
+    public function scheduledRepayments(): HasMany
     {
-        return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        return $this->hasMany(ScheduledRepayment::class);
+    }
+
+    /**
+     * A Loan has many received repayments
+     *
+     * @return HasMany
+     */
+    public function receivedRepayments(): HasMany
+    {
+        return $this->hasMany(ReceivedRepayment::class);
     }
 }

@@ -43,6 +43,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get the loans for the user.
+     */
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
+
+    /**
      * An User has many debit cards
      *
      * @return HasMany
