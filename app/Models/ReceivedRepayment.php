@@ -35,7 +35,7 @@ class ReceivedRepayment extends Model
      * @var array
      */
     protected $casts = [
-        'received_at' => 'date',
+        'received_at' => 'date:Y-m-d',
     ];
 
     /**

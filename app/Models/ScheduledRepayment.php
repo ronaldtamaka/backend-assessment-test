@@ -42,7 +42,7 @@ class ScheduledRepayment extends Model
      * @var array
      */
     protected $casts = [
-        'due_date' => 'date',
+        'due_date' => 'date:Y-m-d',
     ];
 
     /**

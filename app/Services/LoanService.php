@@ -46,7 +46,7 @@ class LoanService
      * @param  string  $currencyCode
      * @param  string  $receivedAt
      *
-     * @return ReceivedRepayment
+     * @return Loan
      */
     public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): Loan
     {
@@ -85,8 +85,9 @@ class LoanService
             $scheduledRepayment->save();
         }
 
-        // Update loan outstanding amount
-        $loan->outstanding_amount = max(0, $loan->outstanding_amount - $amount);
+        // Calculate total outstanding amount from scheduled repayments
+        $totalOutstanding = $loan->scheduledRepayments()->sum('outstanding_amount');
+        $loan->outstanding_amount = $totalOutstanding;
 
         // Update loan status if fully repaid
         if ($loan->outstanding_amount == 0) {
@@ -108,19 +109,19 @@ class LoanService
      * @param string $processedAt
      * @return void
      */
-            private function generateSchedule(Loan $loan, int $amount, int $terms, string $currencyCode, string $processedAt): void
+    private function generateSchedule(Loan $loan, int $amount, int $terms, string $currencyCode, string $processedAt): void
     {
-        // Special case for 5000 / 3 to match test expectations
-        if ($amount == 5000 && $terms == 3) {
-            $amounts = [1666, 1666, 1667];
-        } else {
-            // General case
-            $baseAmount = intval($amount / $terms);
-            $remainder = $amount % $terms;
-            $amounts = array_fill(0, $terms, $baseAmount);
-            if ($remainder > 0) {
-                $amounts[$terms - 1] += $remainder;
-            }
+        // Calculate amounts with proper rounding and distribution
+        $baseAmount = intval($amount / $terms);
+        $remainder = $amount % $terms;
+
+        $amounts = array_fill(0, $terms, $baseAmount);
+
+        // Distribute remainder evenly from the end
+        if ($remainder > 0) {
+            // For test case: 5000 with 3 terms should produce [1666, 1666, 1667]
+            // This means remainder should be distributed to the last term only
+            $amounts[$terms - 1] += $remainder;
         }
 
         $processedDate = Carbon::parse($processedAt);

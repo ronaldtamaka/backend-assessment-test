@@ -23,10 +23,12 @@ class DebitCardPolicy
      */
     public function view(User $user, ?DebitCard $debitCard = null): bool
     {
+        // Always allow viewing debit cards list
         if (!$debitCard) {
             return true;
         }
 
+        // For specific debit card, check if user owns it
         return $user->is($debitCard->user);
     }
 
