@@ -91,7 +91,7 @@ class DebitCardController extends BaseController
      */
     public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
     {
-        $debitCard->delete();
+        $debitCard->forceDelete();
 
         return response()->json([], HttpResponse::HTTP_NO_CONTENT);
     }

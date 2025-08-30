@@ -50,7 +50,7 @@ class DebitCard extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'disabled_at' => 'datetime:Y-m-d H:i:s',
+        'disabled_at' => 'date',
     ];
 
 
