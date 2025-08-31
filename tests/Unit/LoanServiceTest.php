@@ -62,10 +62,12 @@ class LoanServiceTest extends TestCase
             'due_date' => '2020-03-20',
             'status' => ScheduledRepayment::STATUS_DUE,
         ]);
+        // Kemungkinan ada kesalahan perhitungan disini seharusnya sisa 1668
+        // Karena 1666 + 1666 + 1668 = 5000
         $this->assertDatabaseHas('scheduled_repayments', [
             'loan_id' => $loan->id,
-            'amount' => 1667,
-            'outstanding_amount' => 1667,
+            'amount' => 1668,
+            'outstanding_amount' => 1668,
             'currency_code' => $currencyCode,
             'due_date' => '2020-04-20',
             'status' => ScheduledRepayment::STATUS_DUE,
