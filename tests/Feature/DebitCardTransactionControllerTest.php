@@ -32,12 +32,11 @@ class DebitCardTransactionControllerTest extends TestCase
             'debit_card_id' => $this->debitCard->id
         ]);
 
-        $this->actingAs($this->user, 'api')
-                    ->getJson('/api/debit-card-transactions',['debit_card_id' => $this->debitCard->id])
-                    ->assertStatus(200)
-                    ->assertJsonStructure([
-                    '*' => ['amount', 'currency_code']
-                ]);
+        $this->getJson('/api/debit-card-transactions?debit_card_id='.$this->debitCard->id)
+        ->assertStatus(200)
+        ->assertJsonStructure([
+            '*' => ['amount', 'currency_code']
+        ]);
     }
 
     public function testCustomerCannotSeeAListOfDebitCardTransactionsOfOtherCustomerDebitCard()
@@ -51,9 +50,9 @@ class DebitCardTransactionControllerTest extends TestCase
             'debit_card_id' => $otherDebitCard->id
         ]);
 
-        $response = $this->actingAs($this->user, 'api')
-                        ->getJson('/api/debit-card-transactions',['debit_card_id' => $otherDebitCard->id])
-                        ->assertStatus(403);
+        $this->actingAs($this->user, 'api')
+            ->getJson('/api/debit-card-transactions',['debit_card_id' => $otherDebitCard->id])
+            ->assertStatus(403);
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
@@ -65,8 +64,7 @@ class DebitCardTransactionControllerTest extends TestCase
             'currency_code' => $currencyCode
         ];
 
-        $this->actingAs($this->user, 'api')
-             ->postJson('/api/debit-card-transactions', $payload)
+        $this->postJson('/api/debit-card-transactions', $payload)
              ->assertStatus(201)
              ->assertJsonFragment([
                  'amount' => 12345,
@@ -89,8 +87,7 @@ class DebitCardTransactionControllerTest extends TestCase
             'currency_code' => $currencyCode
         ];
 
-        $this->actingAs($this->user, 'api')
-             ->postJson('/api/debit-card-transactions', $payload)
+        $this->postJson('/api/debit-card-transactions', $payload)
              ->assertStatus(403);
     }
 
@@ -100,8 +97,7 @@ class DebitCardTransactionControllerTest extends TestCase
             'debit_card_id' => $this->debitCard->id
         ]);
 
-        $this->actingAs($this->user, 'api')
-             ->getJson('/api/debit-card-transactions/' . $transaction->id)
+        $this->getJson('/api/debit-card-transactions/' . $transaction->id)
              ->assertStatus(200)
              ->assertJsonFragment([
                  'amount' => (string)$transaction->amount,
@@ -120,8 +116,7 @@ class DebitCardTransactionControllerTest extends TestCase
             'debit_card_id' => $otherDebitCard->id
         ]);
 
-        $this->actingAs($this->user, 'api')
-             ->getJson('/api/debit-card-transactions/' . $transaction->id)
+        $this->getJson('/api/debit-card-transactions/' . $transaction->id)
              ->assertStatus(403);
     }
 
@@ -130,12 +125,11 @@ class DebitCardTransactionControllerTest extends TestCase
     {
         $payload = [
             'debit_card_id' => $this->debitCard->id,
-            'amount' => 10000,
+            'amount' => 'abc',
             'currency_code' => 'INVALID' // Invalid currency code
         ];
 
-        $this->actingAs($this->user, 'api')
-             ->postJson('/api/debit-card-transactions', $payload)
+        $this->postJson('/api/debit-card-transactions', $payload)
              ->assertStatus(422)
              ->assertJsonValidationErrors(['amount', 'currency_code']);
     }

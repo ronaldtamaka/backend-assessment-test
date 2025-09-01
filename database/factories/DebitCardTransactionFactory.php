@@ -25,7 +25,7 @@ class DebitCardTransactionFactory extends Factory
         return [
             'amount' => $this->faker->randomNumber(),
             'currency_code' => $this->faker->randomElement(DebitCardTransaction::CURRENCIES),
-            'debit_card_id' => fn () => DebitCard::factory()->create(),
+            'debit_card_id' => DebitCard::factory(),
         ];
     }
 }

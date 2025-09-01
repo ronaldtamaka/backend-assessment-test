@@ -11,6 +11,7 @@ class Loan extends Model
 {
     public const STATUS_DUE = 'due';
     public const STATUS_REPAID = 'repaid';
+    public const STATUS_PARTIAL = 'partial';
 
     public const CURRENCY_SGD = 'SGD';
     public const CURRENCY_VND = 'VND';
@@ -38,6 +39,18 @@ class Loan extends Model
         'processed_at',
         'status',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($loan) {
+            if (is_null($loan->outstanding_amount)) {
+                $loan->outstanding_amount = $loan->amount;
+            }
+            if (is_null($loan->status)) {
+                $loan->status = self::STATUS_DUE;
+            }
+        });
+    }
 
     /**
      * A Loan belongs to a User

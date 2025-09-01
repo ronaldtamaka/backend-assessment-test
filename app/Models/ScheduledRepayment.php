@@ -35,6 +35,16 @@ class ScheduledRepayment extends Model
         'currency_code'
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($scheduledRepayment) {
+            if (is_null($scheduledRepayment->status)) {
+                $scheduledRepayment->status = self::STATUS_DUE;
+            }
+        });
+    }
+
+
     /**
      * A Scheduled Repayment belongs to a Loan
      *

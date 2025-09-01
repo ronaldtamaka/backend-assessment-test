@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\ReceivedRepayment;
 use App\Models\User;
+use App\Models\ScheduledRepayment;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 
 class LoanService
 {
@@ -63,8 +67,67 @@ class LoanService
      *
      * @return ReceivedRepayment
      */
-    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): ReceivedRepayment
+    public function repayLoan(Loan $loan, int $amount, string $currencyCode, string $receivedAt): Loan
     {
-        //
+        $remainingAmount = $amount;
+
+        DB::transaction(function () use (&$loan, &$remainingAmount, $currencyCode, $receivedAt, $amount) {
+            $scheduledRepayments = $loan->scheduledRepayments()
+                ->whereIn('status', [ScheduledRepayment::STATUS_DUE, ScheduledRepayment::STATUS_PARTIAL])
+                ->orderBy('due_date', 'asc')
+                ->get();
+
+            foreach ($scheduledRepayments as $scheduledRepayment) {
+                if ($remainingAmount <= 0) {
+                    break;
+                }
+
+                $srOutstanding = (int) $scheduledRepayment->outstanding_amount;
+                $paymentForThisRepayment = min($remainingAmount, $srOutstanding);
+
+                $scheduledRepayment->outstanding_amount = $srOutstanding - $paymentForThisRepayment;
+
+                if ($scheduledRepayment->outstanding_amount <= 0) {
+                    $scheduledRepayment->status = ScheduledRepayment::STATUS_REPAID;
+                } else {
+                    $scheduledRepayment->status = ScheduledRepayment::STATUS_PARTIAL;
+                }
+
+                $scheduledRepayment->save();
+
+                $remainingAmount -= $paymentForThisRepayment;
+            }
+
+            $paidAmount = $amount - $remainingAmount;
+
+            if ($paidAmount > 0) {
+                $loan->outstanding_amount = $loan->outstanding_amount - $paidAmount;
+
+                if ($loan->outstanding_amount <= 0) {
+                    $loan->status = Loan::STATUS_REPAID;
+                    $loan->outstanding_amount = 0;
+                }
+                
+                $loan->save();
+
+                ReceivedRepayment::create([
+                    'loan_id'       => $loan->id,
+                    'amount'        => $paidAmount,
+                    'currency_code' => $currencyCode,
+                    'received_at'   => Carbon::parse($receivedAt)->format('Y-m-d'),
+                ]);
+            }
+        });
+
+        $allRepaid = $loan->scheduledRepayments()
+            ->whereIn('status', [ScheduledRepayment::STATUS_DUE, ScheduledRepayment::STATUS_PARTIAL])
+            ->count() === 0;
+        if ($allRepaid) {
+            $loan->status = Loan::STATUS_REPAID;
+            $loan->outstanding_amount = 0;
+            $loan->save();
+        }
+
+        return $loan->refresh();
     }
 }
