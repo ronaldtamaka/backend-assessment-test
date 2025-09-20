@@ -207,7 +207,36 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
     {
-        // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $invalidData = [
+            'expiration_date' => now()->subDay()->format('Y-m-d')
+        ];
+
+        $response = $this->putJson("/api/debit-cards/{$debitCard->id}", $invalidData);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['expiration_date']);
+
+        $invalidTypeData = [
+            'type' => 'invalid_type'
+        ];
+
+        $response = $this->putJson("/api/debit-cards/{$debitCard->id}", $invalidTypeData);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+
+        $otherUser = User::factory()->create();
+        $otherDebitCard = DebitCard::factory()->create([
+            'user_id' => $otherUser->id
+        ]);
+
+        $response = $this->putJson("/api/debit-cards/{$otherDebitCard->id}", ['is_active' => false]);
+
+        $response->assertStatus(404);
     }
 
     public function testCustomerCanDeleteADebitCard()
