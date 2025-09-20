@@ -99,7 +99,6 @@ class DebitCardControllerTest extends TestCase
             'is_active' => true
         ]);
 
-        // Verify card number is generated
         $createdCard = DebitCard::where('user_id', $this->user->id)->first();
         $this->assertNotNull($createdCard->number);
         $this->assertEquals(16, strlen($createdCard->number));
