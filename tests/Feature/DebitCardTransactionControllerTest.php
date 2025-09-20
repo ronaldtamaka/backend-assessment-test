@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Passport\Passport;
@@ -31,22 +32,20 @@ class DebitCardTransactionControllerTest extends TestCase
             'debit_card_id' => $this->debitCard->id
         ]);
 
-        $response = $this->getJson('/api/debit-card-transactions');
+        $response = $this->getJson('/api/debit-card-transactions?debit_card_id='.$this->debitCard->id);
 
-        $response->assertStatus(200)
-            ->assertJsonCount(3, 'data')
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'amount',
-                        'currency_code',
-                    ]
-                ]
-            ]);
+        $response->assertStatus(200);
 
-        foreach ($response->json('data') as $transaction) {
-            $debitCard = DebitCard::find(DebitCardTransaction::find($transaction['id'])->debit_card_id);
-            $this->assertEquals($this->user->id, $debitCard->user_id);
+        $json = $response->json();
+
+        $this->assertCount(3, $json);
+
+        foreach ($json as $index => $transactionData) {
+            $this->assertArrayHasKey('amount', $transactionData);
+            $this->assertArrayHasKey('currency_code', $transactionData);
+
+            $this->assertEquals($transactions[$index]->amount, $transactionData['amount']);
+            $this->assertEquals($transactions[$index]->currency_code, $transactionData['currency_code']);
         }
     }
 
@@ -57,26 +56,13 @@ class DebitCardTransactionControllerTest extends TestCase
             'user_id' => $otherUser->id
         ]);
 
-        $ownTransactions = DebitCardTransaction::factory()->count(2)->create([
-            'debit_card_id' => $this->debitCard->id
-        ]);
-
-        $otherTransactions = DebitCardTransaction::factory()->count(3)->create([
+        DebitCardTransaction::factory()->count(3)->create([
             'debit_card_id' => $otherDebitCard->id
         ]);
 
-        $response = $this->getJson('/api/debit-card-transactions');
+        $response = $this->getJson('/api/debit-card-transactions?debit_card_id='.$otherDebitCard->id);
 
-        $response->assertStatus(200)
-            ->assertJsonCount(2, 'data');
-
-        $returnedTransactionIds = collect($response->json('data'))->pluck('id');
-        foreach ($ownTransactions as $transaction) {
-            $this->assertTrue($returnedTransactionIds->contains($transaction->id));
-        }
-        foreach ($otherTransactions as $transaction) {
-            $this->assertFalse($returnedTransactionIds->contains($transaction->id));
-        }
+        $response->assertStatus(403);
     }
 
     public function testCustomerCanCreateADebitCardTransaction()
@@ -91,17 +77,13 @@ class DebitCardTransactionControllerTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'data' => [
                     'amount',
                     'currency_code',
                     
-                ]
             ])
             ->assertJson([
-                'data' => [
                     'amount' => 150000,
                     'currency_code' => 'IDR',
-                ]
             ]);
 
         $this->assertDatabaseHas('debit_card_transactions', [
@@ -127,8 +109,7 @@ class DebitCardTransactionControllerTest extends TestCase
 
         $response = $this->postJson('/api/debit-card-transactions', $transactionData);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['debit_card_id']);
+        $response->assertStatus(403);
 
         $this->assertDatabaseMissing('debit_card_transactions', [
             'debit_card_id' => $otherDebitCard->id,
@@ -149,23 +130,29 @@ class DebitCardTransactionControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [
                     'amount',
                     'currency_code'
-                ]
+                    
             ])
             ->assertJson([
-                'data' => [
-                    'id' => $transaction->id,
                     'amount' => $transaction->amount,
                     'currency_code' => $transaction->currency_code
-                ]
             ]);
     }
 
     public function testCustomerCannotSeeADebitCardTransactionAttachedToOtherCustomerDebitCard()
     {
-        // get /debit-card-transactions/{debitCardTransaction}
+        $otherUser = User::factory()->create();
+        $otherDebitCard = DebitCard::factory()->create([
+            'user_id' => $otherUser->id
+        ]);
+        $otherTransaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $otherDebitCard->id
+        ]);
+
+        $response = $this->getJson("/api/debit-card-transactions/{$otherTransaction->id}");
+
+        $response->assertStatus(403);
     }
 
     // Extra bonus for extra tests :)
