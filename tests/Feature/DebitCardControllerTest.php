@@ -49,12 +49,60 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
-        // get /debit-cards
+        $otherUser = User::factory()->create();
+        
+        $ownDebitCards = DebitCard::factory()->count(2)->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $otherDebitCards = DebitCard::factory()->count(3)->create([
+            'user_id' => $otherUser->id
+        ]);
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+
+        $returnedCardIds = collect($response->json('data'))->pluck('id');
+        foreach ($ownDebitCards as $card) {
+            $this->assertTrue($returnedCardIds->contains($card->id));
+        }
+        foreach ($otherDebitCards as $card) {
+            $this->assertFalse($returnedCardIds->contains($card->id));
+        }
     }
 
     public function testCustomerCanCreateADebitCard()
     {
-        // post /debit-cards
+        $debitCardData = [
+            'type' => 'visa',
+            'expiration_date' => now()->addYears(3)->format('Y-m-d'),
+        ];
+
+        $response = $this->postJson('/api/debit-cards', $debitCardData);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'number',
+                    'type',
+                    'expiration_date',
+                    'is_active'
+                ]
+            ]);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'type' => 'visa',
+            'is_active' => true
+        ]);
+
+        // Verify card number is generated
+        $createdCard = DebitCard::where('user_id', $this->user->id)->first();
+        $this->assertNotNull($createdCard->number);
+        $this->assertEquals(16, strlen($createdCard->number));
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
