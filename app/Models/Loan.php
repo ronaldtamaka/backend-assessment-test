@@ -17,18 +17,9 @@ class Loan extends Model
 
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
+
     protected $table = 'loans';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'user_id',
         'amount',
@@ -39,23 +30,22 @@ class Loan extends Model
         'status',
     ];
 
-    /**
-     * A Loan belongs to a User
-     *
-     * @return BelongsTo
-     */
+    protected $casts = [
+        'processed_at' => 'date:Y-m-d',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * A Loan has many Scheduled Repayments
-     *
-     * @return HasMany
-     */
     public function scheduledRepayments()
     {
         return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+    }
+
+    public function receivedRepayments(): HasMany
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
     }
 }

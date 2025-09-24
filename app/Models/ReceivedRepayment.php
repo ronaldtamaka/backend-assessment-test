@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class ReceivedRepayment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -23,7 +25,15 @@ class ReceivedRepayment extends Model
      * @var array
      */
     protected $fillable = [
-        //
+        'loan_id',
+        'scheduled_repayment_id',
+        'amount',
+        'currency_code',
+        'received_at',
+    ];
+
+    protected $casts = [
+        'received_at' => 'date:Y-m-d',
     ];
 
     /**
@@ -34,5 +44,11 @@ class ReceivedRepayment extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class, 'loan_id');
+    }
+    
+
+    public function scheduledRepayment()
+    {
+        return $this->belongsTo(ScheduledRepayment::class, 'scheduled_repayment_id');
     }
 }
