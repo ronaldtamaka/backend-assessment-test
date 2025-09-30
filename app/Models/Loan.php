@@ -11,6 +11,7 @@ class Loan extends Model
 {
     public const STATUS_DUE = 'due';
     public const STATUS_REPAID = 'repaid';
+    public const STATUS_PARTIAL = 'partial';
 
     public const CURRENCY_SGD = 'SGD';
     public const CURRENCY_VND = 'VND';
