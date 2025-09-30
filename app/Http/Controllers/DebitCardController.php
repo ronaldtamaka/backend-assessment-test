@@ -74,7 +74,7 @@ class DebitCardController extends BaseController
     public function update(DebitCardUpdateRequest $request, DebitCard $debitCard)
     {
         $debitCard->update([
-            'disabled_at' => $request->input('is_active') ? null : Carbon::now(),
+            'disabled_at' => $request->input('is_active') ? null : Carbon::now()->toDateString(),
         ]);
 
         return response()->json(new DebitCardResource($debitCard), HttpResponse::HTTP_OK);
@@ -91,7 +91,7 @@ class DebitCardController extends BaseController
      */
     public function destroy(DebitCardDestroyRequest $request, DebitCard $debitCard)
     {
-        $debitCard->delete();
+        $debitCard->forceDelete();
 
         return response()->json([], HttpResponse::HTTP_NO_CONTENT);
     }

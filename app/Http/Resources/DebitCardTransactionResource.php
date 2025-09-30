@@ -21,7 +21,9 @@ class DebitCardTransactionResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'amount' => $this->amount,
+            'id' => $this->id,
+            'debit_card_id' => (int) $this->debit_card_id,
+            'amount' => (int) $this->amount,
             'currency_code' => $this->currency_code,
         ];
     }

@@ -15,9 +15,8 @@ class DebitCardTransactionShowIndexRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $debitCard = DebitCard::find($this->input('debit_card_id'));
-
-        return $debitCard && $this->user()->can('view', $debitCard);
+        // Always allow - authorization handled in controller
+        return true;
     }
 
     /**

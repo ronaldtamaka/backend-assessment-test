@@ -40,6 +40,15 @@ class Loan extends Model
     ];
 
     /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'processed_at' => 'date:Y-m-d',
+    ];
+
+    /**
      * A Loan belongs to a User
      *
      * @return BelongsTo

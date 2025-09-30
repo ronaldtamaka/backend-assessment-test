@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,8 +51,23 @@ class DebitCard extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'disabled_at' => 'datetime:Y-m-d H:i:s',
+        'disabled_at' => 'date',
     ];
+
+    /**
+     * Set the disabled_at attribute to date only format
+     *
+     * @param  string  $value
+     * @return void
+     */
+    public function setDisabledAtAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['disabled_at'] = Carbon::parse($value)->format('Y-m-d');
+        } else {
+            $this->attributes['disabled_at'] = null;
+        }
+    }
 
 
     /**
