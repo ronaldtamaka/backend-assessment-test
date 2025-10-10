@@ -139,4 +139,17 @@ class DebitCardTransactionControllerTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['amount', 'currency_code']);
     }
+
+    public function testDeletedTransactionShouldNotAppearInList()
+    {
+        $transaction = DebitCardTransaction::factory()->create([
+            'debit_card_id' => $this->debitCard->id,
+        ]);
+
+        $transaction->delete();
+
+        $this->getJson("/api/debit-card-transactions?debit_card_id={$this->debitCard->id}")
+            ->assertOk()
+            ->assertJsonMissing(['id' => $transaction->id]);
+    }
 }
