@@ -141,4 +141,21 @@ class DebitCardControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+
+    public function testCustomerCannotActivateOtherCustomerDebitCard()
+    {
+        $otherUser = User::factory()->create();
+        $card = DebitCard::factory()->create([
+            'user_id' => $otherUser->id,
+            'disabled_at' => now(),
+        ]);
+
+        $this->putJson("/api/debit-cards/{$card->id}", ['is_active' => true])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $card->id,
+            'disabled_at' => $card->disabled_at,
+        ]);
+    }
 }
