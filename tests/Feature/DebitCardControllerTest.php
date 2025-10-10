@@ -31,7 +31,7 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
         $otherUser = User::factory()->create();
-        DebitCard::factory()->count(3)->active()->create(['user_id' => $otherUser->id]);
+        DebitCard::factory()->count(3)->create(['user_id' => $otherUser->id]);
         $this->getJson('/api/debit-cards')->assertOk()->assertJsonCount(0);
     }
 
@@ -53,7 +53,7 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCanSeeASingleDebitCardDetails()
     {
-        $card = DebitCard::factory()->active()->create(['user_id' => $this->user->id]);
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id]);
 
         $this->getJson("/api/debit-cards/{$card->id}")
             ->assertOk()
@@ -62,7 +62,11 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $otherUser = User::factory()->create();
+        $card = DebitCard::factory()->active()->create(['user_id' => $otherUser->id]);
+
+        $this->getJson("/api/debit-cards/{$card->id}")
+            ->assertForbidden();
     }
 
     public function testCustomerCanActivateADebitCard()
