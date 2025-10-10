@@ -158,4 +158,14 @@ class DebitCardControllerTest extends TestCase
             'disabled_at' => $card->disabled_at,
         ]);
     }
+
+    public function testDeletedDebitCardDoesNotAppearInList()
+    {
+        $card = DebitCard::factory()->create(['user_id' => $this->user->id]);
+        $this->deleteJson("/api/debit-cards/{$card->id}")->assertNoContent();
+
+        $this->getJson('/api/debit-cards')
+            ->assertOk()
+            ->assertJsonMissing(['id' => $card->id]);
+    }
 }
