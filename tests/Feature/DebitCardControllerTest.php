@@ -47,13 +47,17 @@ class DebitCardControllerTest extends TestCase
 
         $this->assertDatabaseHas('debit_cards', [
             'user_id' => $this->user->id,
-            'type' => 'Visa',
+            'type' => $payload['type'],
         ]);
     }
 
     public function testCustomerCanSeeASingleDebitCardDetails()
     {
-        // get api/debit-cards/{debitCard}
+        $card = DebitCard::factory()->active()->create(['user_id' => $this->user->id]);
+
+        $this->getJson("/api/debit-cards/{$card->id}")
+            ->assertOk()
+            ->assertJsonStructure(['id', 'number', 'type', 'expiration_date',]);
     }
 
     public function testCustomerCannotSeeASingleDebitCardDetails()
