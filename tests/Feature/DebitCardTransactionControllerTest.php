@@ -126,4 +126,17 @@ class DebitCardTransactionControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+
+    public function testCustomerCannotCreateTransactionWithInvalidData()
+    {
+        $payload = [
+            'debit_card_id' => $this->debitCard->id,
+            'amount' => null,
+            'currency_code' => '',
+        ];
+
+        $this->postJson('/api/debit-card-transactions', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['amount', 'currency_code']);
+    }
 }
