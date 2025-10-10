@@ -30,7 +30,9 @@ class DebitCardControllerTest extends TestCase
 
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
-        // get /debit-cards
+        $otherUser = User::factory()->create();
+        DebitCard::factory()->count(3)->active()->create(['user_id' => $otherUser->id]);
+        $this->getJson('/api/debit-cards')->assertOk()->assertJsonCount(0);
     }
 
     public function testCustomerCanCreateADebitCard()
