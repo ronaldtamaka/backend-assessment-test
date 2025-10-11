@@ -33,6 +33,7 @@ class DebitCard extends Authenticatable
         'type',
         'expiration_date',
         'disabled_at',
+        'is_active',
     ];
 
     /**
