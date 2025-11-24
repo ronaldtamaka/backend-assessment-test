@@ -46,6 +46,7 @@ class DebitCardTransactionController extends BaseController
     {
         $debitCard = DebitCard::find($request->input('debit_card_id'));
 
+
         $debitCardTransaction = $debitCard->debitCardTransactions()->create([
             'amount' => $request->input('amount'),
             'currency_code' => $request->input('currency_code'),
