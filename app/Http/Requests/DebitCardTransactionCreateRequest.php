@@ -17,8 +17,12 @@ class DebitCardTransactionCreateRequest extends FormRequest
     public function authorize(): bool
     {
         $debitCard = DebitCard::find($this->input('debit_card_id'));
+        
+        if (!$debitCard) {
+            return true;
+        }
 
-        return $debitCard && $this->user()->can('create', [DebitCardTransaction::class, $debitCard]);
+        return $this->user()->is($debitCard->user);
     }
 
     /**
@@ -36,5 +40,46 @@ class DebitCardTransactionCreateRequest extends FormRequest
                 Rule::in(DebitCardTransaction::CURRENCIES),
             ],
         ];
+    }
+
+    /**
+     * Get all of the input and files for the request.
+     *
+     * @param array|mixed $keys
+     * @return array
+     */
+    public function all($keys = null)
+    {
+        $data = parent::all($keys);
+                
+        if ($this->header('debit_card_id')) {
+            $data['debit_card_id'] = $this->header('debit_card_id');
+        }
+        if ($this->header('amount')) {
+            $data['amount'] = $this->header('amount');
+        }
+        if ($this->header('currency_code')) {
+            $data['currency_code'] = $this->header('currency_code');
+        }
+        
+        return $data;
+    }
+
+    /**
+     * Retrieve an input item from the request.
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function input($key = null, $default = null)
+    {
+        $value = parent::input($key, null);
+        
+        if ($value === null && $key && $this->header($key)) {
+            return $this->header($key);
+        }
+        
+        return $value ?? $default;
     }
 }

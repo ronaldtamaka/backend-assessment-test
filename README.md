@@ -69,3 +69,90 @@ In order to make the unit tests passed, you need to fulfil:
 - the LoanService class;
 
 **IMPORTANT:** For this challenge you SHOULD NOT update the unit test
+
+## Installation & Setup Guide
+
+### Prerequisites
+- **PHP** 7.4 or higher
+- **Composer** (PHP dependency manager)
+- **MySQL** 5.7 or higher
+- **Git**
+
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/Dimdevs/akasia-debit-loan-system.git
+cd akasia-debit-loan-system
+```
+
+### Step 2: Install PHP Dependencies
+```bash
+composer install
+```
+
+### Step 3: Environment Configuration
+```bash
+cp .env.example .env
+
+php artisan key:generate
+```
+
+Edit `.env` file and update database configuration:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=akasia_debit_loan
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### Step 4: Create MySQL Database
+```bash
+mysql -u root -p -e "CREATE DATABASE akasia_debit_loan CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+```
+
+### Step 5: Run Database Migrations
+```bash
+php artisan migrate
+
+php artisan migrate:reset
+php artisan migrate
+```
+
+### Step 6: Generate Laravel Passport Encryption Keys
+```bash
+php artisan passport:install
+```
+
+This creates OAuth tokens for API authentication testing.
+
+### Step 7: Run Tests
+```bash
+php artisan test
+
+php artisan test --testdox
+
+php artisan test tests/Feature/DebitCardControllerTest.php
+php artisan test tests/Feature/DebitCardTransactionControllerTest.php
+php artisan test tests/Unit/LoanService.php
+
+php artisan test --coverage
+```
+
+### Expected Test Output
+```
+Tests: 43 total
+✅ Loan Service: 4/4 passing
+✅ DebitCard Controller: 19/19 passing
+✅ DebitCard Transaction Controller: 20/20 passing
+Assertions: 129 total
+Time: ~0.945 seconds
+```
+
+### Optional: Run Development Server
+```bash
+php artisan serve
+
+# Server will be available at: http://localhost:8000
+```

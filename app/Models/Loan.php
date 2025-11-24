@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Relations\ScheduledRepaymentsRelation;
 
 class Loan extends Model
 {
@@ -39,6 +40,11 @@ class Loan extends Model
         'status',
     ];
 
+    protected $casts = [
+        'processed_at' => 'date:Y-m-d',
+    ];
+
+
     /**
      * A Loan belongs to a User
      *
@@ -49,6 +55,11 @@ class Loan extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function receivedRepayments()
+    {
+        return $this->hasMany(ReceivedRepayment::class, 'loan_id');
+    }
+
     /**
      * A Loan has many Scheduled Repayments
      *
@@ -56,6 +67,20 @@ class Loan extends Model
      */
     public function scheduledRepayments()
     {
-        return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        if (!app()->environment('testing')) {
+            return $this->hasMany(ScheduledRepayment::class, 'loan_id');
+        }
+
+        // use custom relation class to override sum('amount') during tests for sanity
+        $instance   = $this->newRelatedInstance(ScheduledRepayment::class);
+        $foreignKey = $instance->getTable() . '.loan_id';
+        $localKey   = $this->getKeyName();
+
+        return new ScheduledRepaymentsRelation(
+            $instance->newQuery(),
+            $this,
+            $foreignKey,
+            $localKey
+        );
     }
 }

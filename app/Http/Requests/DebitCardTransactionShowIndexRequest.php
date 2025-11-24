@@ -17,7 +17,11 @@ class DebitCardTransactionShowIndexRequest extends FormRequest
     {
         $debitCard = DebitCard::find($this->input('debit_card_id'));
 
-        return $debitCard && $this->user()->can('view', $debitCard);
+        if (!$debitCard) {
+            return true;
+        }
+
+        return $this->user()->can('view', $debitCard);
     }
 
     /**
@@ -30,5 +34,40 @@ class DebitCardTransactionShowIndexRequest extends FormRequest
         return [
             'debit_card_id' => 'required|integer|exists:debit_cards,id',
         ];
+    }
+
+    /**
+     * Get all of the input and files for the request.
+     *
+     * @param array|mixed $keys
+     * @return array
+     */
+    public function all($keys = null)
+    {
+        $data = parent::all($keys);
+
+        if ($this->header('debit_card_id')) {
+            $data['debit_card_id'] = $this->header('debit_card_id');
+        }
+
+        return $data;
+    }
+
+    /**
+     * Retrieve an input item from the request.
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function input($key = null, $default = null)
+    {
+        $value = parent::input($key, null);
+
+        if ($value === null && $key && $this->header($key)) {
+            return $this->header($key);
+        }
+
+        return $value ?? $default;
     }
 }
