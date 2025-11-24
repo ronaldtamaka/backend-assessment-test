@@ -14,6 +14,12 @@ class ScheduledRepayment extends Model
     public const STATUS_PARTIAL = 'partial';
     public const STATUS_REPAID = 'repaid';
 
+    public const STATUSES = [
+        self::STATUS_DUE,
+        self::STATUS_PARTIAL,
+        self::STATUS_REPAID,
+    ];
+
     /**
      * The table associated with the model.
      *
@@ -28,6 +34,12 @@ class ScheduledRepayment extends Model
      */
     protected $fillable = [
         //
+        'loan_id',
+        'amount',
+        'currency_code',
+        'due_date',
+        'status',
+        'outstanding_amount',
     ];
 
     /**

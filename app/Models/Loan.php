@@ -15,6 +15,16 @@ class Loan extends Model
     public const CURRENCY_SGD = 'SGD';
     public const CURRENCY_VND = 'VND';
 
+    public const CURRENCIES = [
+        self::CURRENCY_SGD,
+        self::CURRENCY_VND,
+    ];
+
+    public const STATUS = [
+        self::STATUS_DUE,
+        self::STATUS_REPAID,
+    ];
+
     use HasFactory;
 
     /**

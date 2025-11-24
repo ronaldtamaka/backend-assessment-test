@@ -14,3 +14,7 @@ npm-debug.log
 yarn-error.log
 .env.testing
 _ide_helper*.php
+Dockerfile
+docker-compose.yml
+.env-examples
+.env
